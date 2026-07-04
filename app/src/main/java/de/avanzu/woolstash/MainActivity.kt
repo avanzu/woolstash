@@ -1,4 +1,4 @@
-package com.example.woolstash
+package de.avanzu.woolstash
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.woolstash.ui.theme.WoolStashTheme
+import de.avanzu.woolstash.ui.theme.WoolStashTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

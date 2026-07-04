@@ -1,4 +1,4 @@
-package com.example.woolstash.ui.theme
+package de.avanzu.woolstash.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

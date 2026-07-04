@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WoolStash">
         <activity
-            android:name=".MainActivity"
+            android:name="de.avanzu.woolstash.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.WoolStash"

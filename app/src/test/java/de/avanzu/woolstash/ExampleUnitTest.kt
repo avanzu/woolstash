@@ -1,4 +1,4 @@
-package com.example.woolstash
+package de.avanzu.woolstash
 
 import org.junit.Test
 
