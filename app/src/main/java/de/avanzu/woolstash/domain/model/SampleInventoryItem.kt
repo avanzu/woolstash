@@ -18,7 +18,7 @@ object SampleInventoryItems {
             ),
         ),
         InventoryItem(
-            name = "BFL Kammzug",
+            name = "Kammzug",
             colorDescription = "Naturgrau",
             materialDescription = "Bluefaced Leicester",
             weight = Weight(200.0, MeasurementSource.Measured),
