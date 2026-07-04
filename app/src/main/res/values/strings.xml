@@ -1,3 +1,65 @@
 <resources>
     <string name="app_name">WoolStash</string>
+    <string name="number_of_entries">%1$d Einträge</string>
+    <!-- Product types -->
+    <string name="product_type_yarn">Garn</string>
+    <string name="product_type_fiber">Faser</string>
+
+    <!-- Inventory item status -->
+    <string name="inventory_item_status_active">Aktiv</string>
+    <string name="inventory_item_status_archived">Archiviert</string>
+
+    <!-- Measurement source -->
+    <string name="measurement_source_manufacturer">Herstellerangabe</string>
+    <string name="measurement_source_measured">Gemessen</string>
+    <string name="measurement_source_calculated">Berechnet</string>
+    <string name="measurement_source_estimated">Geschätzt</string>
+    <string name="measurement_source_unknown">Unbekannt</string>
+
+    <!-- Length basis -->
+    <string name="length_basis_total">Gesamt</string>
+    <string name="length_basis_per_unit">Pro Einheit</string>
+    <string name="length_basis_per_hundred_grams">Pro 100 g</string>
+
+    <!-- Yarn weight -->
+    <string name="yarn_weight_lace">Lace</string>
+    <string name="yarn_weight_fingering">Fingering</string>
+    <string name="yarn_weight_sport">Sport</string>
+    <string name="yarn_weight_dk">DK</string>
+    <string name="yarn_weight_worsted">Worsted</string>
+    <string name="yarn_weight_aran">Aran</string>
+    <string name="yarn_weight_bulky">Bulky</string>
+    <string name="yarn_weight_super_bulky">Super Bulky</string>
+    <string name="yarn_weight_unknown">Unbekannt</string>
+
+    <!-- Twist direction -->
+    <string name="twist_direction_s">S-Drehung</string>
+    <string name="twist_direction_z">Z-Drehung</string>
+    <string name="twist_direction_unknown">Unbekannt</string>
+
+    <!-- Fiber form -->
+    <string name="fiber_form_top">Kammzug</string>
+    <string name="fiber_form_roving">Kardenband</string>
+    <string name="fiber_form_batt">Batt</string>
+    <string name="fiber_form_rolag">Rolag</string>
+    <string name="fiber_form_fleece">Vlies</string>
+    <string name="fiber_form_locks">Locken</string>
+    <string name="fiber_form_other">Andere Form</string>
+    <string name="fiber_form_unknown">Unbekannt</string>
+
+    <!-- Fiber preparation -->
+    <string name="fiber_preparation_raw">Roh</string>
+    <string name="fiber_preparation_washed">Gewaschen</string>
+    <string name="fiber_preparation_carded">Kardiert</string>
+    <string name="fiber_preparation_combed">Gekämmt</string>
+    <string name="fiber_preparation_dyed">Gefärbt</string>
+    <string name="fiber_preparation_natural">Naturbelassen</string>
+    <string name="fiber_preparation_blended">Gemischt</string>
+    <string name="fiber_preparation_other">Andere Vorbereitung</string>
+    <string name="fiber_preparation_unknown">Unbekannt</string>
+
+    <!-- Measurement format strings -->
+    <string name="format_length_meters">%1$d m</string>
+    <string name="format_weight_grams">%1$d g</string>
+    <string name="format_needle_size">Nadel %1$.1f mm</string>
 </resources>

@@ -16,7 +16,7 @@ data class YarnDetails(
 
 enum class LengthBasis {
     Total,
-    PerSkein,
+    PerUnit,
     PerHundredGrams,
 }
 
