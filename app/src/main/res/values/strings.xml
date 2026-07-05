@@ -62,8 +62,32 @@
     <string name="format_length_meters">%1$d m</string>
     <string name="format_weight_grams">%1$d g</string>
     <string name="format_needle_size">Nadel %1$.1f mm</string>
+    <string name="format_micron">%1$.1f micron</string>
+    <string name="format_gauge_stitches">%1$.1f M / 10 cm</string>
+    <string name="format_gauge_rows">%1$.1f R / 10 cm</string>
+
+    <!-- Units -->
+    <string name="unit_grams">g</string>
+    <string name="unit_kilograms">kg</string>
+    <string name="unit_ounces">oz</string>
+    <string name="unit_pounds">lb</string>
+    <string name="unit_meters">m</string>
+    <string name="unit_centimeters">cm</string>
+    <string name="unit_yards">yd</string>
+    <string name="unit_inches">in</string>
+    <string name="unit_millimeters">mm</string>
+    <string name="unit_micron">micron</string>
+    <string name="unit_stitches_per_10cm">M / 10 cm</string>
+    <string name="unit_rows_per_10cm">R / 10 cm</string>
 
     <!-- actions -->
+    <string name="action_back">Zurück</string>
+    <string name="action_add">+</string>
+    <string name="action_create">Anlegen</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="action_add_yarn">Garn anlegen</string>
+    <string name="action_add_fiber">Faser anlegen</string>
     <string name="action_delete">Löschen</string>
     <string name="action_delete_all">Alle löschen</string>
     <string name="action_cancel">Abbrechen</string>
@@ -76,4 +100,48 @@
 
     <string name="inventory_item_count">%1$d Einträge</string>
     <string name="inventory_selection_count">%1$d Ausgewählt</string>
+
+    <!-- Create item -->
+    <string name="create_yarn_title">Garn anlegen</string>
+    <string name="create_fiber_title">Faser anlegen</string>
+    <string name="create_field_name">Name</string>
+    <string name="create_field_weight_grams">Gewicht in g</string>
+    <string name="create_weight_error">Bitte eine positive Zahl eingeben.</string>
+
+    <!-- Detail view -->
+    <string name="detail_photo_empty">Keine Fotos</string>
+    <string name="detail_photo_count">%1$d Fotos</string>
+    <string name="detail_section_overview">Überblick</string>
+    <string name="detail_section_product_details">Details</string>
+    <string name="detail_section_tags">Tags</string>
+    <string name="detail_section_notes">Notizen</string>
+    <string name="detail_field_product_type">Typ</string>
+    <string name="detail_field_color">Farbe</string>
+    <string name="detail_field_material">Material</string>
+    <string name="detail_field_weight">Gewicht</string>
+    <string name="detail_field_location">Lagerort</string>
+    <string name="detail_field_status">Status</string>
+    <string name="detail_field_created_at">Angelegt</string>
+    <string name="detail_field_updated_at">Geändert</string>
+    <string name="detail_field_length">Lauflänge</string>
+    <string name="detail_field_length_basis">Lauflängenbasis</string>
+    <string name="detail_field_yarn_weight">Garnstärke</string>
+    <string name="detail_field_skein_count">Knäuel / Stränge</string>
+    <string name="detail_field_needle_size">Nadelstärke</string>
+    <string name="detail_field_gauge">Maschenprobe</string>
+    <string name="detail_field_gauge_stitches">Maschen / 10 cm</string>
+    <string name="detail_field_gauge_rows">Reihen / 10 cm</string>
+    <string name="detail_field_gauge_needle">Nadel für Maschenprobe</string>
+    <string name="detail_field_gauge_note">Notiz zur Maschenprobe</string>
+    <string name="detail_field_dye_lot">Farbpartie</string>
+    <string name="detail_field_ply">Zwirnung</string>
+    <string name="detail_field_twist_direction">Drallrichtung</string>
+    <string name="detail_field_fiber_form">Faserform</string>
+    <string name="detail_field_preparation">Vorbereitung</string>
+    <string name="detail_field_breed_or_source">Rasse / Herkunft</string>
+    <string name="detail_field_staple_length">Stapellänge</string>
+    <string name="detail_field_micron">Feinheit</string>
+    <string name="detail_field_intended_spin">Spinnziel</string>
+    <string name="detail_field_empty">Keine Angabe</string>
+    <string name="detail_measurement_with_source">%1$s · %2$s</string>
 </resources>

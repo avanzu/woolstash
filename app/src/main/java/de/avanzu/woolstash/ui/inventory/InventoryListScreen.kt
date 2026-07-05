@@ -25,6 +25,9 @@ import de.avanzu.woolstash.ui.theme.WoolStashTheme
 fun InventoryListScreen(
     items: List<InventoryItem>,
     onDeleteItemsConfirmed: (Set<InventoryItemId>) -> Unit,
+    onItemClick: (InventoryItem) -> Unit,
+    onAddYarnClick: () -> Unit,
+    onAddFiberClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedItemIds by remember {
@@ -91,6 +94,8 @@ fun InventoryListScreen(
                 } else {
                     InventoryListHeader(
                         itemCount = items.size,
+                        onAddYarnClick = onAddYarnClick,
+                        onAddFiberClick = onAddFiberClick,
                     )
                 }
             }
@@ -107,7 +112,7 @@ fun InventoryListScreen(
                         if (isSelectionMode) {
                             toggleSelection(item)
                         } else {
-                            // Detail view comes later.
+                            onItemClick(item)
                         }
                     },
                     onLongClick = {
@@ -126,6 +131,9 @@ private fun InventoryListScreenPreview() {
         InventoryListScreen(
             items = SampleInventoryItems.items,
             onDeleteItemsConfirmed = {},
+            onItemClick = {},
+            onAddYarnClick = {},
+            onAddFiberClick = {},
         )
     }
 }

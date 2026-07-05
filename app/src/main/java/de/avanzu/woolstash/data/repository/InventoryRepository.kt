@@ -22,6 +22,11 @@ class InventoryRepository(
         inventoryItemDao.upsert(item.toEntity())
     }
 
+    suspend fun create(item: InventoryItem): InventoryItem {
+        save(item)
+        return item
+    }
+
     suspend fun seedIfEmpty(items: List<InventoryItem>) {
         if (inventoryItemDao.count() > 0) {
             return

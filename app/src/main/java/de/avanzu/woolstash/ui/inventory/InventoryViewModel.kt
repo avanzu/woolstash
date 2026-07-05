@@ -4,9 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import de.avanzu.woolstash.data.repository.InventoryRepository
+import de.avanzu.woolstash.domain.model.FiberDetails
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.ProductDetails
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
+import de.avanzu.woolstash.domain.model.Weight
+import de.avanzu.woolstash.domain.model.YarnDetails
+import java.time.Instant
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -46,6 +51,99 @@ class InventoryListViewModel(
             inventoryRepository.deleteItemsById(ids)
         }
     }
+
+    fun createYarn(
+        input: CreateInventoryItemInput,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        createItem(
+            item = input.toInventoryItem(details = YarnDetails()),
+            onCreated = onCreated,
+        )
+    }
+
+    fun createFiber(
+        input: CreateInventoryItemInput,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        createItem(
+            item = input.toInventoryItem(details = FiberDetails()),
+            onCreated = onCreated,
+        )
+    }
+
+    private fun createItem(
+        item: InventoryItem,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val createdItem = inventoryRepository.create(item)
+            onCreated(createdItem.id)
+        }
+    }
+
+    fun updateCoreFields(
+        item: InventoryItem,
+        input: CreateInventoryItemInput,
+        onUpdated: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            inventoryRepository.save(input.toUpdatedInventoryItem(item))
+            onUpdated()
+        }
+    }
+
+    fun updateProductDetails(
+        item: InventoryItem,
+        details: ProductDetails,
+        onUpdated: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            inventoryRepository.save(
+                item.copy(
+                    details = details,
+                    updatedAt = Instant.now(),
+                ),
+            )
+            onUpdated()
+        }
+    }
+}
+
+data class CreateInventoryItemInput(
+    val name: String,
+    val colorDescription: String?,
+    val materialDescription: String?,
+    val weightGrams: Double?,
+) {
+    fun toInventoryItem(details: de.avanzu.woolstash.domain.model.ProductDetails): InventoryItem {
+        return InventoryItem(
+            name = name.trim(),
+            colorDescription = colorDescription.cleanOrNull(),
+            materialDescription = materialDescription.cleanOrNull(),
+            weight = weightGrams?.let { grams -> Weight(grams) },
+            details = details,
+        )
+    }
+
+    fun toUpdatedInventoryItem(item: InventoryItem): InventoryItem {
+        return item.copy(
+            name = name.trim(),
+            colorDescription = colorDescription.cleanOrNull(),
+            materialDescription = materialDescription.cleanOrNull(),
+            weight = weightGrams?.let { grams ->
+                Weight(
+                    grams = grams,
+                    source = item.weight?.source ?: de.avanzu.woolstash.domain.model.MeasurementSource.Unknown,
+                )
+            },
+            updatedAt = Instant.now(),
+        )
+    }
+}
+
+private fun String?.cleanOrNull(): String? {
+    return this?.trim()?.takeIf { value -> value.isNotEmpty() }
 }
 
 class InventoryListViewModelFactory(
