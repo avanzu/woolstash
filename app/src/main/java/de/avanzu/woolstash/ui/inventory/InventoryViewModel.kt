@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import de.avanzu.woolstash.data.repository.InventoryRepository
+import de.avanzu.woolstash.domain.model.InventoryItem
+import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,7 @@ import kotlinx.coroutines.launch
 class InventoryListViewModel(
     private val inventoryRepository: InventoryRepository,
 ) : ViewModel() {
-    val items: StateFlow<List<de.avanzu.woolstash.domain.model.InventoryItem>> =
+    val items: StateFlow<List<InventoryItem>> =
         inventoryRepository.observeItems()
             .stateIn(
                 scope = viewModelScope,
@@ -24,6 +26,24 @@ class InventoryListViewModel(
     init {
         viewModelScope.launch {
             inventoryRepository.seedIfEmpty(SampleInventoryItems.items)
+        }
+    }
+
+    fun deleteItem(item: InventoryItem) {
+        viewModelScope.launch {
+            inventoryRepository.delete(item)
+        }
+    }
+
+    fun deleteAllItems() {
+        viewModelScope.launch {
+            inventoryRepository.deleteAll()
+        }
+    }
+
+    fun deleteItems(ids: Set<InventoryItemId>) {
+        viewModelScope.launch {
+            inventoryRepository.deleteItemsById(ids)
         }
     }
 }

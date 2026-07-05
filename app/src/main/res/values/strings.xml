@@ -62,4 +62,18 @@
     <string name="format_length_meters">%1$d m</string>
     <string name="format_weight_grams">%1$d g</string>
     <string name="format_needle_size">Nadel %1$.1f mm</string>
+
+    <!-- actions -->
+    <string name="action_delete">Löschen</string>
+    <string name="action_delete_all">Alle löschen</string>
+    <string name="action_cancel">Abbrechen</string>
+
+    <string name="delete_item_dialog_title">Eintrag löschen?</string>
+    <string name="delete_item_dialog_message">Dieser Eintrag wird aus deinem Bestand entfernt.</string>
+
+    <string name="delete_items_dialog_title">Einträge löschen?</string>
+    <string name="delete_items_dialog_message">%1$d Einträge werden aus deinem Bestand entfernt.</string>
+
+    <string name="inventory_item_count">%1$d Einträge</string>
+    <string name="inventory_selection_count">%1$d Ausgewählt</string>
 </resources>

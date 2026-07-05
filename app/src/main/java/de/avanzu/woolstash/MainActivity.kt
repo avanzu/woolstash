@@ -43,7 +43,10 @@ class MainActivity : ComponentActivity() {
                     factory = InventoryListViewModelFactory(inventoryRepository),
                 )
                 val items by viewModel.items.collectAsState()
-                InventoryListScreen(items = items)
+                InventoryListScreen(
+                    items = items,
+                    onDeleteItemsConfirmed = viewModel::deleteItems,
+                )
             }
         }
     }

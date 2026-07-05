@@ -18,4 +18,14 @@ interface InventoryItemDao {
 
     @Query("SELECT COUNT(*) FROM inventory_items")
     suspend fun count(): Int
+
+    @Query("DELETE FROM inventory_items WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM inventory_items")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM inventory_items WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
+
 }
