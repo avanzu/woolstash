@@ -19,6 +19,7 @@ import de.avanzu.woolstash.data.media.InventoryPhotoFile
 import de.avanzu.woolstash.data.media.InventoryPhotoImporter
 import de.avanzu.woolstash.data.repository.InventoryRepository
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.normalizedDistinct
 import de.avanzu.woolstash.ui.inventory.CreateInventoryItemScreen
 import de.avanzu.woolstash.ui.inventory.CreateInventoryItemType
 import de.avanzu.woolstash.ui.inventory.InventoryItemDetailScreen
@@ -35,13 +36,16 @@ class MainActivity : ComponentActivity() {
             WoolStashDatabase::class.java,
             "wool_stash.db",
         )
-            .addMigrations(WoolStashDatabase.Migration1To2)
+            .addMigrations(
+                WoolStashDatabase.Migration1To2,
+                WoolStashDatabase.Migration2To3,
+            )
             .build()
     }
 
     private val inventoryRepository: InventoryRepository by lazy {
         InventoryRepository(
-            inventoryItemDao = database.inventoryItemDao(),
+            database = database,
         )
     }
 
@@ -75,6 +79,13 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<CreateInventoryItemType?>(null)
                 }
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
+                val tagSuggestions = remember(items) {
+                    items
+                        .flatMap { item -> item.tags }
+                        .normalizedDistinct()
+                        .map { tag -> tag.name }
+                        .sorted()
+                }
                 val coroutineScope = rememberCoroutineScope()
                 var photoPreviews by remember {
                     mutableStateOf<Map<InventoryItemId, InventoryPhotoFile>>(emptyMap())
@@ -108,6 +119,7 @@ class MainActivity : ComponentActivity() {
                                 selectedItemId = createdItemId
                             }
                         },
+                        tagSuggestions = tagSuggestions,
                     )
                 } else if (selectedItem != null) {
                     var photos by remember(selectedItem.id) {
@@ -134,6 +146,7 @@ class MainActivity : ComponentActivity() {
                         },
                         onUpdateCoreFields = viewModel::updateCoreFields,
                         onUpdateProductDetails = viewModel::updateProductDetails,
+                        tagSuggestions = tagSuggestions,
                         onPhotoSelected = { uri ->
                             coroutineScope.launch {
                                 isImportingPhoto = true

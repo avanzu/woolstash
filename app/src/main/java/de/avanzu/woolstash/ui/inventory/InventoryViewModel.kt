@@ -9,8 +9,10 @@ import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.ProductDetails
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
+import de.avanzu.woolstash.domain.model.Tag
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
+import de.avanzu.woolstash.domain.model.normalizedDistinct
 import java.time.Instant
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -115,6 +117,7 @@ data class CreateInventoryItemInput(
     val colorDescription: String?,
     val materialDescription: String?,
     val weightGrams: Double?,
+    val tags: List<Tag>,
 ) {
     fun toInventoryItem(details: de.avanzu.woolstash.domain.model.ProductDetails): InventoryItem {
         return InventoryItem(
@@ -122,6 +125,7 @@ data class CreateInventoryItemInput(
             colorDescription = colorDescription.cleanOrNull(),
             materialDescription = materialDescription.cleanOrNull(),
             weight = weightGrams?.let { grams -> Weight(grams) },
+            tags = tags.normalizedDistinct(),
             details = details,
         )
     }
@@ -137,6 +141,7 @@ data class CreateInventoryItemInput(
                     source = item.weight?.source ?: de.avanzu.woolstash.domain.model.MeasurementSource.Unknown,
                 )
             },
+            tags = tags.normalizedDistinct(),
             updatedAt = Instant.now(),
         )
     }

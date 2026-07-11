@@ -1,25 +1,49 @@
 package de.avanzu.woolstash.data.repository
 
-import de.avanzu.woolstash.data.local.InventoryItemDao
+import androidx.room.withTransaction
+import de.avanzu.woolstash.data.local.WoolStashDatabase
 import de.avanzu.woolstash.data.local.toDomain
 import de.avanzu.woolstash.data.local.toEntity
+import de.avanzu.woolstash.data.local.toTagEntities
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.Tag
+import de.avanzu.woolstash.domain.model.normalizedDistinct
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 class InventoryRepository(
-    private val inventoryItemDao: InventoryItemDao,
+    private val database: WoolStashDatabase,
 ) {
+    private val inventoryItemDao = database.inventoryItemDao()
+    private val inventoryItemTagDao = database.inventoryItemTagDao()
+
     fun observeItems(): Flow<List<InventoryItem>> {
-        return inventoryItemDao.observeAll()
-            .map { entities ->
-                entities.map { entity -> entity.toDomain() }
+        return combine(
+            inventoryItemDao.observeAll(),
+            inventoryItemTagDao.observeAll(),
+        ) { itemEntities, tagEntities ->
+            val tagsByItemId = tagEntities
+                .groupBy { tag -> tag.itemId }
+                .mapValues { (_, tags) ->
+                    tags.map { tag -> Tag(tag.name) }
+                        .normalizedDistinct()
+                }
+
+            itemEntities.map { entity ->
+                entity.toDomain(tags = tagsByItemId[entity.id].orEmpty())
             }
+        }
     }
 
     suspend fun save(item: InventoryItem) {
-        inventoryItemDao.upsert(item.toEntity())
+        val normalizedItem = item.copy(tags = item.tags.normalizedDistinct())
+
+        database.withTransaction {
+            inventoryItemDao.upsert(normalizedItem.toEntity())
+            inventoryItemTagDao.deleteByItemId(normalizedItem.id.value)
+            inventoryItemTagDao.insertAll(normalizedItem.toTagEntities())
+        }
     }
 
     suspend fun create(item: InventoryItem): InventoryItem {
@@ -38,11 +62,17 @@ class InventoryRepository(
     }
 
     suspend fun delete(item: InventoryItem) {
-        inventoryItemDao.deleteById(item.id.value)
+        database.withTransaction {
+            inventoryItemTagDao.deleteByItemId(item.id.value)
+            inventoryItemDao.deleteById(item.id.value)
+        }
     }
 
     suspend fun deleteAll() {
-        inventoryItemDao.deleteAll()
+        database.withTransaction {
+            inventoryItemTagDao.deleteAll()
+            inventoryItemDao.deleteAll()
+        }
     }
 
     suspend fun deleteItems(items: List<InventoryItem>) {
@@ -52,7 +82,10 @@ class InventoryRepository(
             return
         }
 
-        inventoryItemDao.deleteByIds(ids)
+        database.withTransaction {
+            inventoryItemTagDao.deleteByItemIds(ids)
+            inventoryItemDao.deleteByIds(ids)
+        }
     }
 
     suspend fun deleteItemsById(ids: Set<InventoryItemId>) {
@@ -60,8 +93,11 @@ class InventoryRepository(
             return
         }
 
-        inventoryItemDao.deleteByIds(
-            ids = ids.map { id -> id.value },
-        )
+        val itemIds = ids.map { id -> id.value }
+
+        database.withTransaction {
+            inventoryItemTagDao.deleteByItemIds(itemIds)
+            inventoryItemDao.deleteByIds(ids = itemIds)
+        }
     }
 }

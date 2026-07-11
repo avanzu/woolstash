@@ -108,7 +108,10 @@
     <string name="create_fiber_title">Faser anlegen</string>
     <string name="create_field_name">Name</string>
     <string name="create_field_weight_grams">Gewicht in g</string>
+    <string name="create_field_tags">Tags</string>
     <string name="create_weight_error">Bitte eine positive Zahl eingeben.</string>
+    <string name="action_add_tag">Tag hinzufügen</string>
+    <string name="action_remove_tag">Tag entfernen</string>
 
     <!-- Detail view -->
     <string name="detail_photo_empty">Keine Fotos</string>

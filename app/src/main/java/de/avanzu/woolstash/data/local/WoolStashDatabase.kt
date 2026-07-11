@@ -9,13 +9,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         InventoryItemEntity::class,
         InventoryItemPhotoEntity::class,
+        InventoryItemTagEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class WoolStashDatabase : RoomDatabase() {
     abstract fun inventoryItemDao(): InventoryItemDao
     abstract fun inventoryItemPhotoDao(): InventoryItemPhotoDao
+    abstract fun inventoryItemTagDao(): InventoryItemTagDao
 
     companion object {
         val Migration1To2 = object : Migration(1, 2) {
@@ -32,6 +34,23 @@ abstract class WoolStashDatabase : RoomDatabase() {
                     )
                     """.trimIndent(),
                 )
+            }
+        }
+
+        val Migration2To3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS inventory_item_tags (
+                        itemId TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        PRIMARY KEY(itemId, name),
+                        FOREIGN KEY(itemId) REFERENCES inventory_items(id) ON DELETE CASCADE
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inventory_item_tags_itemId ON inventory_item_tags(itemId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inventory_item_tags_name ON inventory_item_tags(name)")
             }
         }
     }

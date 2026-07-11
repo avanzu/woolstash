@@ -12,6 +12,7 @@ import de.avanzu.woolstash.domain.model.LengthBasis
 import de.avanzu.woolstash.domain.model.MeasurementSource
 import de.avanzu.woolstash.domain.model.NeedleSize
 import de.avanzu.woolstash.domain.model.ProductType
+import de.avanzu.woolstash.domain.model.Tag
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
 import de.avanzu.woolstash.domain.model.YarnWeight
@@ -67,6 +68,10 @@ fun InventoryItem.toEntity(): InventoryItemEntity {
 }
 
 fun InventoryItemEntity.toDomain(): InventoryItem {
+    return toDomain(tags = emptyList())
+}
+
+fun InventoryItemEntity.toDomain(tags: List<Tag>): InventoryItem {
     return InventoryItem(
         id = InventoryItemId(id),
         name = name,
@@ -80,13 +85,24 @@ fun InventoryItemEntity.toDomain(): InventoryItem {
         },
         location = location,
         status = InventoryItemStatus.valueOf(status),
-        tags = emptyList(),
+        tags = tags,
         photos = emptyList(),
         notes = notes,
         details = toProductDetails(),
         createdAt = Instant.parse(createdAt),
         updatedAt = Instant.parse(updatedAt),
     )
+}
+
+fun InventoryItem.toTagEntities(): List<InventoryItemTagEntity> {
+    return tags
+        .distinctBy { tag -> tag.name }
+        .map { tag ->
+            InventoryItemTagEntity(
+                itemId = id.value,
+                name = tag.name,
+            )
+        }
 }
 
 private fun InventoryItemEntity.toProductDetails() = when (ProductType.valueOf(productType)) {

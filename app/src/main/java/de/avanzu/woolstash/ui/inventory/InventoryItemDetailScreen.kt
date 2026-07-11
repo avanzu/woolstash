@@ -74,6 +74,7 @@ fun InventoryItemDetailScreen(
     onBackClick: () -> Unit,
     onUpdateCoreFields: (InventoryItem, CreateInventoryItemInput, () -> Unit) -> Unit,
     onUpdateProductDetails: (InventoryItem, ProductDetails, () -> Unit) -> Unit,
+    tagSuggestions: List<String>,
     onPhotoSelected: (Uri) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
@@ -143,6 +144,7 @@ fun InventoryItemDetailScreen(
                             editingSection = null
                         }
                     },
+                    tagSuggestions = tagSuggestions,
                 )
             }
 
@@ -164,7 +166,7 @@ fun InventoryItemDetailScreen(
                 )
             }
 
-            if (item.tags.isNotEmpty()) {
+            if (item.tags.isNotEmpty() && editingSection != InventoryDetailSection.Overview) {
                 item {
                     DetailSection(
                         title = stringResource(R.string.detail_section_tags),
@@ -480,6 +482,7 @@ private fun OverviewSection(
     onEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onSave: (CreateInventoryItemInput) -> Unit,
+    tagSuggestions: List<String>,
 ) {
     EditableDetailSection(
         title = stringResource(R.string.detail_section_overview),
@@ -492,6 +495,8 @@ private fun OverviewSection(
                 initialColorDescription = item.colorDescription,
                 initialMaterialDescription = item.materialDescription,
                 initialWeightGrams = item.weight?.grams,
+                initialTags = item.tags,
+                tagSuggestions = tagSuggestions,
                 submitLabel = stringResource(R.string.action_save),
                 onSubmit = onSave,
                 onCancel = onCancelEdit,
@@ -771,6 +776,7 @@ private fun InventoryItemDetailScreenPreview() {
             onBackClick = {},
             onUpdateCoreFields = { _, _, onUpdated -> onUpdated() },
             onUpdateProductDetails = { _, _, onUpdated -> onUpdated() },
+            tagSuggestions = listOf("socken", "natur"),
             onPhotoSelected = {},
             onSetHeroPhoto = {},
             onDeletePhoto = {},
