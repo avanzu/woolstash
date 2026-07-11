@@ -41,6 +41,7 @@ internal fun InventoryItemCard(
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -91,6 +92,7 @@ internal fun InventoryItemCard(
                 if (item.tags.isNotEmpty()) {
                     TagRow(
                         tags = item.tags.map { tag -> tag.name },
+                        onTagClick = onTagClick,
                     )
                 }
             }
@@ -156,6 +158,7 @@ private fun ProductDetailsLine(
 @Composable
 private fun TagRow(
     tags: List<String>,
+    onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     FlowRow(
@@ -166,7 +169,7 @@ private fun TagRow(
         tags.forEach { tag ->
             AssistChip(
                 onClick = {
-                    // Filtering comes later.
+                    onTagClick(tag)
                 },
                 label = {
                     Text(tag)

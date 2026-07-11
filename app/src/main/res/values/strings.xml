@@ -91,6 +91,9 @@
     <string name="action_delete">Löschen</string>
     <string name="action_delete_all">Alle löschen</string>
     <string name="action_cancel">Abbrechen</string>
+    <string name="action_filter">Filtern</string>
+    <string name="action_sort">Sortieren</string>
+    <string name="action_clear_filter">Filter löschen</string>
 
     <string name="delete_item_dialog_title">Eintrag löschen?</string>
     <string name="delete_item_dialog_message">Dieser Eintrag wird aus deinem Bestand entfernt.</string>
@@ -99,9 +102,14 @@
     <string name="delete_items_dialog_message">%1$d Einträge werden aus deinem Bestand entfernt.</string>
 
     <string name="inventory_item_count">%1$d Einträge</string>
+    <string name="inventory_filtered_item_count">%1$d von %2$d Einträge</string>
     <string name="inventory_selection_count">%1$d Ausgewählt</string>
     <string name="inventory_item_thumbnail_content_description">Vorschaubild des Bestandseintrags</string>
     <string name="inventory_item_thumbnail_placeholder_content_description">Platzhalterbild des Bestandseintrags</string>
+    <string name="inventory_type_filter_all">Alle</string>
+    <string name="sort_option_updated_newest">Zuletzt geändert</string>
+    <string name="sort_option_name_asc">Name</string>
+    <string name="sort_option_type_then_name">Typ</string>
 
     <!-- Create item -->
     <string name="create_yarn_title">Garn anlegen</string>

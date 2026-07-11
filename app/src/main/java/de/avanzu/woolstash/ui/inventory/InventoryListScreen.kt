@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import de.avanzu.woolstash.data.media.InventoryPhotoFile
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.ProductType
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
 
@@ -40,6 +41,25 @@ fun InventoryListScreen(
         mutableStateOf<Set<InventoryItemId>?>(null)
     }
 
+    var activeTagFilter by remember {
+        mutableStateOf<String?>(null)
+    }
+    var activeProductTypeFilter by remember {
+        mutableStateOf<ProductType?>(null)
+    }
+    var activeSort by remember {
+        mutableStateOf(InventoryListSort.UpdatedNewest)
+    }
+
+    val availableTags = remember(items) {
+        items.availableTagNames()
+    }
+    val visibleItems = remember(items, activeTagFilter, activeProductTypeFilter, activeSort) {
+        items
+            .filterByProductType(activeProductTypeFilter)
+            .filterByTag(activeTagFilter)
+            .sortForInventoryList(activeSort)
+    }
     val isSelectionMode = selectedItemIds.isNotEmpty()
 
     fun toggleSelection(item: InventoryItem) {
@@ -56,6 +76,26 @@ fun InventoryListScreen(
 
     fun clearSelection() {
         selectedItemIds = emptySet()
+    }
+
+    fun selectTagFilter(tag: String) {
+        activeTagFilter = tag
+        clearSelection()
+    }
+
+    fun clearTagFilter() {
+        activeTagFilter = null
+        clearSelection()
+    }
+
+    fun selectProductTypeFilter(productType: ProductType?) {
+        activeProductTypeFilter = productType
+        clearSelection()
+    }
+
+    fun selectSort(sort: InventoryListSort) {
+        activeSort = sort
+        clearSelection()
     }
 
     pendingDeleteIds?.let { ids ->
@@ -95,7 +135,18 @@ fun InventoryListScreen(
                     )
                 } else {
                     InventoryListHeader(
-                        itemCount = items.size,
+                        totalItemCount = items.size,
+                        visibleItemCount = visibleItems.size,
+                        availableTags = availableTags,
+                        activeTagFilter = activeTagFilter,
+                        activeProductTypeFilter = activeProductTypeFilter,
+                        activeSort = activeSort,
+                        onTagFilterSelected = { tag -> selectTagFilter(tag) },
+                        onTagFilterCleared = { clearTagFilter() },
+                        onProductTypeFilterSelected = { productType ->
+                            selectProductTypeFilter(productType)
+                        },
+                        onSortSelected = { sort -> selectSort(sort) },
                         onAddYarnClick = onAddYarnClick,
                         onAddFiberClick = onAddFiberClick,
                     )
@@ -103,7 +154,7 @@ fun InventoryListScreen(
             }
 
             items(
-                items = items,
+                items = visibleItems,
                 key = { item -> item.id.value },
             ) { item ->
                 InventoryItemCard(
@@ -121,6 +172,7 @@ fun InventoryListScreen(
                     onLongClick = {
                         enterSelectionMode(item)
                     },
+                    onTagClick = { tag -> selectTagFilter(tag) },
                 )
             }
         }
