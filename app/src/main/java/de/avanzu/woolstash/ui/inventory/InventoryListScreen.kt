@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.avanzu.woolstash.data.media.InventoryPhotoFile
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
@@ -24,6 +25,7 @@ import de.avanzu.woolstash.ui.theme.WoolStashTheme
 @Composable
 fun InventoryListScreen(
     items: List<InventoryItem>,
+    photoPreviews: Map<InventoryItemId, InventoryPhotoFile>,
     onDeleteItemsConfirmed: (Set<InventoryItemId>) -> Unit,
     onItemClick: (InventoryItem) -> Unit,
     onAddYarnClick: () -> Unit,
@@ -106,6 +108,7 @@ fun InventoryListScreen(
             ) { item ->
                 InventoryItemCard(
                     item = item,
+                    photoPreview = photoPreviews[item.id],
                     isSelectionMode = isSelectionMode,
                     isSelected = item.id in selectedItemIds,
                     onClick = {
@@ -130,6 +133,7 @@ private fun InventoryListScreenPreview() {
     WoolStashTheme {
         InventoryListScreen(
             items = SampleInventoryItems.items,
+            photoPreviews = emptyMap(),
             onDeleteItemsConfirmed = {},
             onItemClick = {},
             onAddYarnClick = {},

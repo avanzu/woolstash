@@ -1,12 +1,10 @@
 package de.avanzu.woolstash.ui.inventory
 
 import android.net.Uri
-import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,14 +43,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,9 +64,6 @@ import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
-import java.io.File
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun InventoryItemDetailScreen(
@@ -454,33 +446,6 @@ private fun PhotoThumbnail(
                     ),
             )
         }
-    }
-}
-
-@Composable
-private fun LocalPhotoImage(
-    file: File,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Crop,
-) {
-    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = file) {
-        value = withContext(Dispatchers.IO) {
-            BitmapFactory.decodeFile(file.absolutePath)?.asImageBitmap()
-        }
-    }
-
-    if (imageBitmap == null) {
-        Box(
-            modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
-        )
-    } else {
-        Image(
-            bitmap = requireNotNull(imageBitmap),
-            contentDescription = contentDescription,
-            modifier = modifier,
-            contentScale = contentScale,
-        )
     }
 }
 

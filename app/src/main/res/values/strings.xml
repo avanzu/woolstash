@@ -100,6 +100,8 @@
 
     <string name="inventory_item_count">%1$d Einträge</string>
     <string name="inventory_selection_count">%1$d Ausgewählt</string>
+    <string name="inventory_item_thumbnail_content_description">Vorschaubild des Bestandseintrags</string>
+    <string name="inventory_item_thumbnail_placeholder_content_description">Platzhalterbild des Bestandseintrags</string>
 
     <!-- Create item -->
     <string name="create_yarn_title">Garn anlegen</string>

@@ -76,6 +76,19 @@ class MainActivity : ComponentActivity() {
                 }
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
                 val coroutineScope = rememberCoroutineScope()
+                var photoPreviews by remember {
+                    mutableStateOf<Map<InventoryItemId, InventoryPhotoFile>>(emptyMap())
+                }
+
+                LaunchedEffect(items.map { item -> item.id }) {
+                    photoPreviews = buildMap {
+                        items.forEach { item ->
+                            inventoryMediaStore.listPhotos(item.id)
+                                .firstOrNull()
+                                ?.let { photo -> put(item.id, photo) }
+                        }
+                    }
+                }
 
                 if (createItemType != null) {
                     CreateInventoryItemScreen(
@@ -131,6 +144,10 @@ class MainActivity : ComponentActivity() {
                                         sourceUri = uri,
                                     )
                                     photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                                    photoPreviews = photoPreviews.withPreview(
+                                        itemId = selectedItem.id,
+                                        photo = photos.firstOrNull(),
+                                    )
                                 } catch (_: Exception) {
                                     photoImportError = getString(R.string.detail_photo_import_error)
                                 } finally {
@@ -145,19 +162,31 @@ class MainActivity : ComponentActivity() {
                                     photoId = photo.photoId,
                                 )
                                 photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                                photoPreviews = photoPreviews.withPreview(
+                                    itemId = selectedItem.id,
+                                    photo = photos.firstOrNull(),
+                                )
                             }
                         },
                         onDeletePhoto = { photo ->
                             coroutineScope.launch {
                                 inventoryMediaStore.deletePhoto(photo)
                                 photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                                photoPreviews = photoPreviews.withPreview(
+                                    itemId = selectedItem.id,
+                                    photo = photos.firstOrNull(),
+                                )
                             }
                         },
                     )
                 } else {
                     InventoryListScreen(
                         items = items,
-                        onDeleteItemsConfirmed = viewModel::deleteItems,
+                        photoPreviews = photoPreviews,
+                        onDeleteItemsConfirmed = { ids ->
+                            viewModel.deleteItems(ids)
+                            photoPreviews = photoPreviews - ids
+                        },
                         onItemClick = { item ->
                             selectedItemId = item.id
                         },
@@ -171,5 +200,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+private fun Map<InventoryItemId, InventoryPhotoFile>.withPreview(
+    itemId: InventoryItemId,
+    photo: InventoryPhotoFile?,
+): Map<InventoryItemId, InventoryPhotoFile> {
+    return if (photo == null) {
+        this - itemId
+    } else {
+        this + (itemId to photo)
     }
 }
