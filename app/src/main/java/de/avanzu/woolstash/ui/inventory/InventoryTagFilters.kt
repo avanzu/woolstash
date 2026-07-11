@@ -38,6 +38,23 @@ internal fun List<InventoryItem>.filterByProductType(productType: ProductType?):
     return filter { item -> item.productType == productType }
 }
 
+internal fun List<InventoryItem>.filterBySearchQuery(query: String?): List<InventoryItem> {
+    val normalizedQuery = query
+        ?.trim()
+        ?.lowercase(Locale.ROOT)
+        .orEmpty()
+
+    if (normalizedQuery.isBlank()) {
+        return this
+    }
+
+    return filter { item ->
+        item.searchableText().any { value ->
+            value.lowercase(Locale.ROOT).contains(normalizedQuery)
+        }
+    }
+}
+
 internal fun List<InventoryItem>.sortForInventoryList(sort: InventoryListSort): List<InventoryItem> {
     return when (sort) {
         InventoryListSort.UpdatedNewest -> sortedWith(
@@ -63,4 +80,14 @@ private fun ProductType.sortRank(): Int {
 
 private fun String.normalizedSortName(): String {
     return lowercase(Locale.ROOT)
+}
+
+private fun InventoryItem.searchableText(): List<String> {
+    return listOfNotNull(
+        name,
+        colorDescription,
+        materialDescription,
+        location,
+        notes,
+    ) + tags.map { tag -> tag.name }
 }

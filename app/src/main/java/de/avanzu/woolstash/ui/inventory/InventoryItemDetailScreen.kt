@@ -4,11 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,24 +17,31 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -94,109 +99,107 @@ fun InventoryItemDetailScreen(
         modifier = modifier,
         color = MaterialTheme.colorScheme.background,
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            item {
+        Scaffold(
+            topBar = {
                 DetailTopBar(
+                    item = item,
+                    isImportingPhoto = isImportingPhoto,
                     onBackClick = onBackClick,
-                )
-            }
-
-            item {
-                PhotoSection(
-                    photos = photos,
-                    isImporting = isImportingPhoto,
-                    importError = photoImportError,
                     onAddPhotoClick = {
                         photoPickerLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                         )
                     },
-                    onSetHeroPhoto = onSetHeroPhoto,
-                    onDeletePhoto = onDeletePhoto,
-                )
-            }
-
-            item {
-                DetailTitleSection(
-                    item = item,
-                )
-            }
-
-            item {
-                OverviewSection(
-                    item = item,
-                    isEditing = editingSection == InventoryDetailSection.Overview,
-                    onEdit = {
+                    onEditOverviewClick = {
                         editingSection = InventoryDetailSection.Overview
                     },
-                    onCancelEdit = {
-                        editingSection = null
-                    },
-                    onSave = { input ->
-                        onUpdateCoreFields(item, input) {
-                            editingSection = null
-                        }
-                    },
-                    tagSuggestions = tagSuggestions,
-                )
-            }
-
-            item {
-                ProductDetailsSection(
-                    details = item.details,
-                    isEditing = editingSection == InventoryDetailSection.ProductDetails,
-                    onEdit = {
+                    onEditDetailsClick = {
                         editingSection = InventoryDetailSection.ProductDetails
                     },
-                    onCancelEdit = {
-                        editingSection = null
-                    },
-                    onSave = { details ->
-                        onUpdateProductDetails(item, details) {
-                            editingSection = null
-                        }
-                    },
                 )
-            }
-
-            if (item.tags.isNotEmpty() && editingSection != InventoryDetailSection.Overview) {
+            },
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 16.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
                 item {
-                    DetailSection(
-                        title = stringResource(R.string.detail_section_tags),
-                    ) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                    PhotoSection(
+                        photos = photos,
+                        isImporting = isImportingPhoto,
+                        importError = photoImportError,
+                        onSetHeroPhoto = onSetHeroPhoto,
+                        onDeletePhoto = onDeletePhoto,
+                    )
+                }
+
+                item {
+                    OverviewSection(
+                        item = item,
+                        isEditing = editingSection == InventoryDetailSection.Overview,
+                        onCancelEdit = {
+                            editingSection = null
+                        },
+                        onSave = { input ->
+                            onUpdateCoreFields(item, input) {
+                                editingSection = null
+                            }
+                        },
+                        tagSuggestions = tagSuggestions,
+                    )
+                }
+
+                item {
+                    ProductDetailsSection(
+                        details = item.details,
+                        isEditing = editingSection == InventoryDetailSection.ProductDetails,
+                        onCancelEdit = {
+                            editingSection = null
+                        },
+                        onSave = { details ->
+                            onUpdateProductDetails(item, details) {
+                                editingSection = null
+                            }
+                        },
+                    )
+                }
+
+                if (item.tags.isNotEmpty() && editingSection != InventoryDetailSection.Overview) {
+                    item {
+                        DetailSection(
+                            title = stringResource(R.string.detail_section_tags),
                         ) {
-                            item.tags.forEach { tag ->
-                                AssistChip(
-                                    onClick = {},
-                                    label = {
-                                        Text(tag.name)
-                                    },
-                                )
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                item.tags.forEach { tag ->
+                                    AssistChip(
+                                        onClick = {},
+                                        label = {
+                                            Text(tag.name)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if (!item.notes.isNullOrBlank()) {
-                item {
-                    DetailSection(
-                        title = stringResource(R.string.detail_section_notes),
-                    ) {
-                        Text(
-                            text = item.notes,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
+                if (!item.notes.isNullOrBlank()) {
+                    item {
+                        DetailSection(
+                            title = stringResource(R.string.detail_section_notes),
+                        ) {
+                            Text(
+                                text = item.notes,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
                     }
                 }
             }
@@ -206,21 +209,154 @@ fun InventoryItemDetailScreen(
 
 @Composable
 private fun DetailTopBar(
+    item: InventoryItem,
+    isImportingPhoto: Boolean,
     onBackClick: () -> Unit,
+    onAddPhotoClick: () -> Unit,
+    onEditOverviewClick: () -> Unit,
+    onEditDetailsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+    var isMenuExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
     ) {
-        IconButton(
-            onClick = onBackClick,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.action_back),
-            )
+            IconButton(
+                onClick = onBackClick,
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = item.productTypeLabel(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Box {
+                FilledIconButton(
+                    onClick = {
+                        isMenuExpanded = true
+                    },
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.action_more),
+                    )
+                }
+
+                DetailActionMenu(
+                    expanded = isMenuExpanded,
+                    onExpandedChange = { expanded -> isMenuExpanded = expanded },
+                    isImportingPhoto = isImportingPhoto,
+                    onAddPhotoClick = onAddPhotoClick,
+                    onEditOverviewClick = onEditOverviewClick,
+                    onEditDetailsClick = onEditDetailsClick,
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun DetailActionMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    isImportingPhoto: Boolean,
+    onAddPhotoClick: () -> Unit,
+    onEditOverviewClick: () -> Unit,
+    onEditDetailsClick: () -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = {
+            onExpandedChange(false)
+        },
+    ) {
+        DropdownMenuItem(
+            enabled = !isImportingPhoto,
+            text = {
+                Text(stringResource(R.string.detail_photo_add_from_gallery))
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                )
+            },
+            onClick = {
+                onExpandedChange(false)
+                onAddPhotoClick()
+            },
+        )
+        DropdownMenuItem(
+            text = {
+                Text(stringResource(R.string.detail_action_edit_overview))
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                )
+            },
+            onClick = {
+                onExpandedChange(false)
+                onEditOverviewClick()
+            },
+        )
+        DropdownMenuItem(
+            text = {
+                Text(stringResource(R.string.detail_action_edit_details))
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                )
+            },
+            onClick = {
+                onExpandedChange(false)
+                onEditDetailsClick()
+            },
+        )
     }
 }
 
@@ -229,7 +365,6 @@ private fun PhotoSection(
     photos: List<InventoryPhotoFile>,
     isImporting: Boolean,
     importError: String?,
-    onAddPhotoClick: () -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
     modifier: Modifier = Modifier,
@@ -243,6 +378,9 @@ private fun PhotoSection(
     val selectedPhoto = photos.firstOrNull { photo ->
         photo.photoId.value == selectedPhotoId
     } ?: photos.firstOrNull()
+    var isPhotoToolbarVisible by remember(selectedPhoto?.photoId) {
+        mutableStateOf(false)
+    }
 
     photoPendingDeletion?.let { photo ->
         AlertDialog(
@@ -301,6 +439,19 @@ private fun PhotoSection(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
                 )
+
+                SelectedPhotoActionOverlay(
+                    selectedPhoto = selectedPhoto,
+                    isToolbarVisible = isPhotoToolbarVisible,
+                    onToolbarVisibilityChange = { visible ->
+                        isPhotoToolbarVisible = visible
+                    },
+                    onSetHeroPhoto = onSetHeroPhoto,
+                    onDeletePhotoClick = {
+                        photoPendingDeletion = selectedPhoto
+                    },
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                )
             }
         }
 
@@ -314,15 +465,6 @@ private fun PhotoSection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            IconButton(
-                onClick = onAddPhotoClick,
-                enabled = !isImporting,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.detail_photo_add_from_gallery),
-                )
-            }
         }
 
         if (isImporting) {
@@ -330,16 +472,6 @@ private fun PhotoSection(
                 text = stringResource(R.string.detail_photo_importing),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        if (selectedPhoto != null) {
-            SelectedPhotoToolbar(
-                selectedPhoto = selectedPhoto,
-                onSetHeroPhoto = onSetHeroPhoto,
-                onDeletePhotoClick = {
-                    photoPendingDeletion = selectedPhoto
-                },
             )
         }
 
@@ -373,44 +505,80 @@ private fun PhotoSection(
 }
 
 @Composable
-private fun SelectedPhotoToolbar(
+private fun SelectedPhotoActionOverlay(
     selectedPhoto: InventoryPhotoFile,
+    isToolbarVisible: Boolean,
+    onToolbarVisibilityChange: (Boolean) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhotoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        modifier = modifier.padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(
-            enabled = !selectedPhoto.isHero,
-            onClick = {
-                onSetHeroPhoto(selectedPhoto)
-            },
-        ) {
-            Icon(
-                imageVector = if (selectedPhoto.isHero) Icons.Default.Star else Icons.Default.StarBorder,
-                contentDescription = if (selectedPhoto.isHero) {
-                    stringResource(R.string.detail_photo_is_hero)
-                } else {
-                    stringResource(R.string.detail_photo_set_hero)
-                },
-                tint = if (selectedPhoto.isHero) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
+        if (isToolbarVisible) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                shadowElevation = 4.dp,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(
+                        enabled = !selectedPhoto.isHero,
+                        onClick = {
+                            onSetHeroPhoto(selectedPhoto)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = if (selectedPhoto.isHero) {
+                                Icons.Default.Star
+                            } else {
+                                Icons.Default.StarBorder
+                            },
+                            contentDescription = if (selectedPhoto.isHero) {
+                                stringResource(R.string.detail_photo_is_hero)
+                            } else {
+                                stringResource(R.string.detail_photo_set_hero)
+                            },
+                            tint = if (selectedPhoto.isHero) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
+                    }
+                    IconButton(
+                        onClick = onDeletePhotoClick,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.action_delete),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
         }
-        IconButton(
-            onClick = onDeletePhotoClick,
+
+        FilledIconButton(
+            onClick = {
+                onToolbarVisibilityChange(!isToolbarVisible)
+            },
+            shape = CircleShape,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
         ) {
             Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = stringResource(R.string.action_delete),
-                tint = MaterialTheme.colorScheme.error,
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.detail_photo_toggle_actions),
             )
         }
     }
@@ -452,42 +620,15 @@ private fun PhotoThumbnail(
 }
 
 @Composable
-private fun DetailTitleSection(
-    item: InventoryItem,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            text = item.name,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = item.summaryLine(),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
 private fun OverviewSection(
     item: InventoryItem,
     isEditing: Boolean,
-    onEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onSave: (CreateInventoryItemInput) -> Unit,
     tagSuggestions: List<String>,
 ) {
     EditableDetailSection(
         title = stringResource(R.string.detail_section_overview),
-        onEdit = onEdit,
-        showEditAction = !isEditing,
     ) {
         if (isEditing) {
             InventoryCoreFieldsEditor(
@@ -542,16 +683,13 @@ private fun OverviewSection(
 private fun ProductDetailsSection(
     details: ProductDetails,
     isEditing: Boolean,
-    onEdit: () -> Unit,
     onCancelEdit: () -> Unit,
     onSave: (ProductDetails) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     EditableDetailSection(
         title = stringResource(R.string.detail_section_product_details),
-        onEdit = onEdit,
         modifier = modifier,
-        showEditAction = !isEditing,
     ) {
         if (isEditing) {
             when (details) {
@@ -664,46 +802,21 @@ private fun Length.displayText(): String {
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EditableDetailSection(
     title: String,
-    onEdit: () -> Unit,
     modifier: Modifier = Modifier,
-    showEditAction: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                enabled = showEditAction,
-                onClick = {},
-                onLongClick = onEdit,
-            ),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            if (showEditAction) {
-                IconButton(
-                    onClick = onEdit,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(R.string.action_edit),
-                    )
-                }
-            }
-        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             content = content,

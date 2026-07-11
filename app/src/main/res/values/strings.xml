@@ -94,6 +94,9 @@
     <string name="action_filter">Filtern</string>
     <string name="action_sort">Sortieren</string>
     <string name="action_clear_filter">Filter löschen</string>
+    <string name="action_open_navigation">Navigation öffnen</string>
+    <string name="action_clear_search">Suche löschen</string>
+    <string name="action_more">Weitere Aktionen</string>
 
     <string name="delete_item_dialog_title">Eintrag löschen?</string>
     <string name="delete_item_dialog_message">Dieser Eintrag wird aus deinem Bestand entfernt.</string>
@@ -107,6 +110,12 @@
     <string name="inventory_item_thumbnail_content_description">Vorschaubild des Bestandseintrags</string>
     <string name="inventory_item_thumbnail_placeholder_content_description">Platzhalterbild des Bestandseintrags</string>
     <string name="inventory_type_filter_all">Alle</string>
+    <string name="inventory_search_placeholder">Suchen</string>
+    <string name="inventory_tag_filter_all">Alle Tags</string>
+    <string name="inventory_tag_filter_empty">Keine Tags vorhanden</string>
+    <string name="drawer_section_product_type">Produkttyp</string>
+    <string name="drawer_section_tags">Tags</string>
+    <string name="drawer_section_sorting">Sortierung</string>
     <string name="sort_option_updated_newest">Zuletzt geändert</string>
     <string name="sort_option_name_asc">Name</string>
     <string name="sort_option_type_then_name">Typ</string>
@@ -130,8 +139,11 @@
     <string name="detail_photo_content_description">Foto des Bestandseintrags</string>
     <string name="detail_photo_set_hero">Als Titelbild</string>
     <string name="detail_photo_is_hero">Ist Titelbild</string>
+    <string name="detail_photo_toggle_actions">Bildaktionen anzeigen oder ausblenden</string>
     <string name="detail_photo_delete_dialog_title">Foto löschen?</string>
     <string name="detail_photo_delete_dialog_message">Dieses Foto wird aus diesem Bestandseintrag entfernt.</string>
+    <string name="detail_action_edit_overview">Überblick bearbeiten</string>
+    <string name="detail_action_edit_details">Details bearbeiten</string>
     <string name="detail_section_overview">Überblick</string>
     <string name="detail_section_product_details">Details</string>
     <string name="detail_section_tags">Tags</string>

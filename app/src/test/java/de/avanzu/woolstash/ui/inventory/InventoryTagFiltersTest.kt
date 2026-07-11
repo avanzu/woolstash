@@ -66,6 +66,47 @@ class InventoryTagFiltersTest {
     }
 
     @Test
+    fun filterBySearchQuery_withoutQuery_returnsAllItems() {
+        val items = sampleItems()
+
+        assertEquals(items, items.filterBySearchQuery(null))
+        assertEquals(items, items.filterBySearchQuery(""))
+        assertEquals(items, items.filterBySearchQuery(" "))
+    }
+
+    @Test
+    fun filterBySearchQuery_matchesInventoryTextFields() {
+        val items = sampleItems()
+
+        assertEquals(listOf(items[0]), items.filterBySearchQuery("Sockenwolle"))
+        assertEquals(listOf(items[0]), items.filterBySearchQuery("blau"))
+        assertEquals(listOf(items[0]), items.filterBySearchQuery("Merino"))
+        assertEquals(listOf(items[1]), items.filterBySearchQuery("Faserkiste"))
+        assertEquals(listOf(items[2]), items.filterBySearchQuery("Projektidee"))
+        assertEquals(listOf(items[1]), items.filterBySearchQuery("natur"))
+    }
+
+    @Test
+    fun filterBySearchQuery_isCaseInsensitive() {
+        val items = sampleItems()
+
+        assertEquals(listOf(items[0]), items.filterBySearchQuery("SOCKENWOLLE"))
+    }
+
+    @Test
+    fun filters_combineTagProductTypeAndSearchQuery() {
+        val items = sampleItems()
+
+        assertEquals(
+            listOf(items[1]),
+            items
+                .filterByProductType(ProductType.Fiber)
+                .filterByTag("natur")
+                .filterBySearchQuery("bluefaced"),
+        )
+    }
+
+    @Test
     fun sortForInventoryList_byName_sortsAlphabetically() {
         val items = sampleItems()
 
@@ -99,18 +140,25 @@ class InventoryTagFiltersTest {
         return listOf(
             InventoryItem(
                 name = "Sockenwolle",
+                colorDescription = "Blaugrün",
+                materialDescription = "Merino / Polyamid",
+                location = "Kiste Schlafzimmer",
                 tags = listOf(Tag("socken")),
                 details = YarnDetails(),
                 updatedAt = Instant.parse("2026-01-01T10:00:00Z"),
             ),
             InventoryItem(
                 name = "Kammzug",
+                colorDescription = "Naturgrau",
+                materialDescription = "Bluefaced Leicester",
+                location = "Faserkiste",
                 tags = listOf(Tag("spinnen"), Tag("natur")),
                 details = FiberDetails(),
                 updatedAt = Instant.parse("2026-01-02T10:00:00Z"),
             ),
             InventoryItem(
                 name = "Rest",
+                notes = "Projektidee für Bündchen",
                 tags = listOf(Tag("socken")),
                 details = YarnDetails(),
                 updatedAt = Instant.parse("2026-01-03T10:00:00Z"),
