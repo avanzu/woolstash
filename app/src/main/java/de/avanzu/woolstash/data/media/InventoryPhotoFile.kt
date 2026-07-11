@@ -11,4 +11,5 @@ data class InventoryPhotoFile(
     val assignedAt: Instant,
     val displayFile: File,
     val thumbnailFile: File,
+    val isHero: Boolean,
 )

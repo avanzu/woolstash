@@ -1,5 +1,7 @@
 package de.avanzu.woolstash.data.media
 
+import de.avanzu.woolstash.data.local.InventoryItemPhotoDao
+import de.avanzu.woolstash.data.local.InventoryItemPhotoEntity
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.PhotoId
 import java.io.File
@@ -10,6 +12,7 @@ import kotlinx.coroutines.withContext
 
 class InventoryMediaStore(
     filesDir: File,
+    private val inventoryItemPhotoDao: InventoryItemPhotoDao,
     private val clock: Clock = Clock.systemUTC(),
     private val photoIdFactory: () -> PhotoId = { PhotoId.new() },
 ) {
@@ -26,11 +29,9 @@ class InventoryMediaStore(
     suspend fun listPhotos(inventoryItemId: InventoryItemId): List<InventoryPhotoFile> {
         return withContext(Dispatchers.IO) {
             val itemDirectory = inventoryItemMediaDirectory(inventoryItemId)
-            val photoDirectories = itemDirectory.listFiles()
+            val validPhotoFolders = itemDirectory.listFiles()
                 ?.filter { file -> file.isDirectory }
                 .orEmpty()
-
-            photoDirectories
                 .sortedBy { directory -> directory.name }
                 .mapNotNull { directory ->
                     val parsedName = InventoryMediaFolderNames.parsePhotoFolderName(directory.name)
@@ -42,14 +43,65 @@ class InventoryMediaStore(
                         return@mapNotNull null
                     }
 
-                    InventoryPhotoFile(
+                    ValidPhotoFolder(
                         photoId = parsedName.photoId,
-                        inventoryItemId = inventoryItemId,
                         assignedAt = parsedName.assignedAt,
+                        directory = directory,
                         displayFile = displayFile,
                         thumbnailFile = thumbnailFile,
                     )
                 }
+
+            val metadataByPhotoId = inventoryItemPhotoDao.findByItemId(inventoryItemId.value)
+                .associateBy { entity -> entity.photoId }
+                .toMutableMap()
+            var nextSortOrder = inventoryItemPhotoDao.nextSortOrder(inventoryItemId.value)
+
+            validPhotoFolders.forEach { folder ->
+                if (metadataByPhotoId.containsKey(folder.photoId.value)) {
+                    return@forEach
+                }
+
+                val metadata = InventoryItemPhotoEntity(
+                    itemId = inventoryItemId.value,
+                    photoId = folder.photoId.value,
+                    assignedAt = folder.assignedAt.toString(),
+                    sortOrder = nextSortOrder,
+                    isHero = false,
+                )
+                nextSortOrder += 1
+                inventoryItemPhotoDao.upsert(metadata)
+                metadataByPhotoId[metadata.photoId] = metadata
+            }
+
+            val sortedPhotos = validPhotoFolders
+                .mapNotNull { folder ->
+                    val metadata = metadataByPhotoId[folder.photoId.value]
+                        ?: return@mapNotNull null
+
+                    ListedPhoto(
+                        folder = folder,
+                        metadata = metadata,
+                    )
+                }
+                .sortedWith(
+                    compareBy<ListedPhoto> { listedPhoto -> !listedPhoto.metadata.isHero }
+                        .thenBy { listedPhoto -> listedPhoto.metadata.sortOrder }
+                        .thenBy { listedPhoto -> listedPhoto.folder.assignedAt }
+                        .thenBy { listedPhoto -> listedPhoto.folder.photoId.value },
+                )
+            val hasExplicitHero = sortedPhotos.any { listedPhoto -> listedPhoto.metadata.isHero }
+
+            sortedPhotos.mapIndexed { index, listedPhoto ->
+                InventoryPhotoFile(
+                    photoId = listedPhoto.folder.photoId,
+                    inventoryItemId = inventoryItemId,
+                    assignedAt = listedPhoto.folder.assignedAt,
+                    displayFile = listedPhoto.folder.displayFile,
+                    thumbnailFile = listedPhoto.folder.thumbnailFile,
+                    isHero = listedPhoto.metadata.isHero || (!hasExplicitHero && index == 0),
+                )
+            }
         }
     }
 
@@ -77,6 +129,28 @@ class InventoryMediaStore(
         }
     }
 
+    suspend fun deletePhoto(photo: InventoryPhotoFile) {
+        withContext(Dispatchers.IO) {
+            photo.displayFile.parentFile?.deleteRecursively()
+            inventoryItemPhotoDao.delete(
+                itemId = photo.inventoryItemId.value,
+                photoId = photo.photoId.value,
+            )
+        }
+    }
+
+    suspend fun setHeroPhoto(
+        inventoryItemId: InventoryItemId,
+        photoId: PhotoId,
+    ) {
+        withContext(Dispatchers.IO) {
+            inventoryItemPhotoDao.setHeroPhoto(
+                itemId = inventoryItemId.value,
+                photoId = photoId.value,
+            )
+        }
+    }
+
     companion object {
         const val DISPLAY_FILE_NAME = "display.webp"
         const val THUMBNAIL_FILE_NAME = "thumbnail.webp"
@@ -85,3 +159,16 @@ class InventoryMediaStore(
         private const val INVENTORY_DIRECTORY = "inventory"
     }
 }
+
+private data class ValidPhotoFolder(
+    val photoId: PhotoId,
+    val assignedAt: Instant,
+    val directory: File,
+    val displayFile: File,
+    val thumbnailFile: File,
+)
+
+private data class ListedPhoto(
+    val folder: ValidPhotoFolder,
+    val metadata: InventoryItemPhotoEntity,
+)

@@ -1,7 +1,15 @@
 package de.avanzu.woolstash.ui.inventory
 
+import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,9 +22,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,37 +45,57 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.avanzu.woolstash.R
+import de.avanzu.woolstash.data.media.InventoryPhotoFile
 import de.avanzu.woolstash.domain.model.FiberDetails
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.Length
-import de.avanzu.woolstash.domain.model.PhotoRef
 import de.avanzu.woolstash.domain.model.ProductDetails
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
+import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun InventoryItemDetailScreen(
     item: InventoryItem,
+    photos: List<InventoryPhotoFile>,
+    isImportingPhoto: Boolean,
+    photoImportError: String?,
     onBackClick: () -> Unit,
     onUpdateCoreFields: (InventoryItem, CreateInventoryItemInput, () -> Unit) -> Unit,
     onUpdateProductDetails: (InventoryItem, ProductDetails, () -> Unit) -> Unit,
+    onPhotoSelected: (Uri) -> Unit,
+    onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
+    onDeletePhoto: (InventoryPhotoFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var editingSection by remember(item.id) {
         mutableStateOf<InventoryDetailSection?>(null)
     }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let(onPhotoSelected)
+        },
+    )
 
     Surface(
         modifier = modifier,
@@ -76,7 +117,16 @@ fun InventoryItemDetailScreen(
 
             item {
                 PhotoSection(
-                    photos = item.photos,
+                    photos = photos,
+                    isImporting = isImportingPhoto,
+                    importError = photoImportError,
+                    onAddPhotoClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                    onSetHeroPhoto = onSetHeroPhoto,
+                    onDeletePhoto = onDeletePhoto,
                 )
             }
 
@@ -169,19 +219,70 @@ private fun DetailTopBar(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(
+        IconButton(
             onClick = onBackClick,
         ) {
-            Text(stringResource(R.string.action_back))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.action_back),
+            )
         }
     }
 }
 
 @Composable
 private fun PhotoSection(
-    photos: List<PhotoRef>,
+    photos: List<InventoryPhotoFile>,
+    isImporting: Boolean,
+    importError: String?,
+    onAddPhotoClick: () -> Unit,
+    onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
+    onDeletePhoto: (InventoryPhotoFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var photoPendingDeletion by remember {
+        mutableStateOf<InventoryPhotoFile?>(null)
+    }
+    var selectedPhotoId by remember {
+        mutableStateOf<String?>(null)
+    }
+    val selectedPhoto = photos.firstOrNull { photo ->
+        photo.photoId.value == selectedPhotoId
+    } ?: photos.firstOrNull()
+
+    photoPendingDeletion?.let { photo ->
+        AlertDialog(
+            onDismissRequest = {
+                photoPendingDeletion = null
+            },
+            title = {
+                Text(stringResource(R.string.detail_photo_delete_dialog_title))
+            },
+            text = {
+                Text(stringResource(R.string.detail_photo_delete_dialog_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        photoPendingDeletion = null
+                        onDeletePhoto(photo)
+                    },
+                ) {
+                    Text(stringResource(R.string.action_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        photoPendingDeletion = null
+                    },
+                ) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -193,24 +294,193 @@ private fun PhotoSection(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = if (photos.isEmpty()) {
-                    stringResource(R.string.detail_photo_empty)
-                } else {
-                    stringResource(R.string.detail_photo_count, photos.size)
-                },
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (selectedPhoto == null) {
+                Text(
+                    text = stringResource(R.string.detail_photo_empty),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                LocalPhotoImage(
+                    file = selectedPhoto.displayFile,
+                    contentDescription = stringResource(R.string.detail_photo_content_description),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
         }
 
-        photos.firstOrNull()?.caption?.takeIf { caption -> caption.isNotBlank() }?.let { caption ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = caption,
+                text = stringResource(R.string.detail_photo_count, photos.size),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            IconButton(
+                onClick = onAddPhotoClick,
+                enabled = !isImporting,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.detail_photo_add_from_gallery),
+                )
+            }
+        }
+
+        if (isImporting) {
+            Text(
+                text = stringResource(R.string.detail_photo_importing),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        if (selectedPhoto != null) {
+            SelectedPhotoToolbar(
+                selectedPhoto = selectedPhoto,
+                onSetHeroPhoto = onSetHeroPhoto,
+                onDeletePhotoClick = {
+                    photoPendingDeletion = selectedPhoto
+                },
+            )
+        }
+
+        if (photos.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    items = photos,
+                    key = { photo -> photo.photoId.value },
+                ) { photo ->
+                    PhotoThumbnail(
+                        photo = photo,
+                        isSelected = photo.photoId == selectedPhoto?.photoId,
+                        onClick = {
+                            selectedPhotoId = photo.photoId.value
+                        },
+                    )
+                }
+            }
+        }
+
+        if (!importError.isNullOrBlank()) {
+            Text(
+                text = importError,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SelectedPhotoToolbar(
+    selectedPhoto: InventoryPhotoFile,
+    onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
+    onDeletePhotoClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            enabled = !selectedPhoto.isHero,
+            onClick = {
+                onSetHeroPhoto(selectedPhoto)
+            },
+        ) {
+            Icon(
+                imageVector = if (selectedPhoto.isHero) Icons.Default.Star else Icons.Default.StarBorder,
+                contentDescription = if (selectedPhoto.isHero) {
+                    stringResource(R.string.detail_photo_is_hero)
+                } else {
+                    stringResource(R.string.detail_photo_set_hero)
+                },
+                tint = if (selectedPhoto.isHero) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
+        IconButton(
+            onClick = onDeletePhotoClick,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.action_delete),
+                tint = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhotoThumbnail(
+    photo: InventoryPhotoFile,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = MaterialTheme.shapes.small
+    Box(
+        modifier = modifier
+            .size(72.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick),
+    ) {
+        LocalPhotoImage(
+            file = photo.thumbnailFile,
+            contentDescription = stringResource(R.string.detail_photo_content_description),
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .border(
+                        width = 3.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = shape,
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun LocalPhotoImage(
+    file: File,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
+) {
+    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = file) {
+        value = withContext(Dispatchers.IO) {
+            BitmapFactory.decodeFile(file.absolutePath)?.asImageBitmap()
+        }
+    }
+
+    if (imageBitmap == null) {
+        Box(
+            modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+        )
+    } else {
+        Image(
+            bitmap = requireNotNull(imageBitmap),
+            contentDescription = contentDescription,
+            modifier = modifier,
+            contentScale = contentScale,
+        )
     }
 }
 
@@ -454,10 +724,13 @@ private fun EditableDetailSection(
                 fontWeight = FontWeight.SemiBold,
             )
             if (showEditAction) {
-                TextButton(
+                IconButton(
                     onClick = onEdit,
                 ) {
-                    Text(stringResource(R.string.action_edit))
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.action_edit),
+                    )
                 }
             }
         }
@@ -527,9 +800,15 @@ private fun InventoryItemDetailScreenPreview() {
     WoolStashTheme {
         InventoryItemDetailScreen(
             item = SampleInventoryItems.items.first(),
+            photos = emptyList(),
+            isImportingPhoto = false,
+            photoImportError = null,
             onBackClick = {},
             onUpdateCoreFields = { _, _, onUpdated -> onUpdated() },
             onUpdateProductDetails = { _, _, onUpdated -> onUpdated() },
+            onPhotoSelected = {},
+            onSetHeroPhoto = {},
+            onDeletePhoto = {},
         )
     }
 }

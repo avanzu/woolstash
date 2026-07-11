@@ -4,14 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
 import de.avanzu.woolstash.data.local.WoolStashDatabase
+import de.avanzu.woolstash.data.media.InventoryMediaStore
+import de.avanzu.woolstash.data.media.InventoryPhotoFile
+import de.avanzu.woolstash.data.media.InventoryPhotoImporter
 import de.avanzu.woolstash.data.repository.InventoryRepository
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.ui.inventory.CreateInventoryItemScreen
@@ -21,6 +26,7 @@ import de.avanzu.woolstash.ui.inventory.InventoryListScreen
 import de.avanzu.woolstash.ui.inventory.InventoryListViewModel
 import de.avanzu.woolstash.ui.inventory.InventoryListViewModelFactory
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val database: WoolStashDatabase by lazy {
@@ -28,12 +34,28 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             WoolStashDatabase::class.java,
             "wool_stash.db",
-        ).build()
+        )
+            .addMigrations(WoolStashDatabase.Migration1To2)
+            .build()
     }
 
     private val inventoryRepository: InventoryRepository by lazy {
         InventoryRepository(
             inventoryItemDao = database.inventoryItemDao(),
+        )
+    }
+
+    private val inventoryMediaStore: InventoryMediaStore by lazy {
+        InventoryMediaStore(
+            filesDir = applicationContext.filesDir,
+            inventoryItemPhotoDao = database.inventoryItemPhotoDao(),
+        )
+    }
+
+    private val inventoryPhotoImporter: InventoryPhotoImporter by lazy {
+        InventoryPhotoImporter(
+            contentResolver = contentResolver,
+            mediaStore = inventoryMediaStore,
         )
     }
 
@@ -53,6 +75,7 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<CreateInventoryItemType?>(null)
                 }
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
+                val coroutineScope = rememberCoroutineScope()
 
                 if (createItemType != null) {
                     CreateInventoryItemScreen(
@@ -74,13 +97,62 @@ class MainActivity : ComponentActivity() {
                         },
                     )
                 } else if (selectedItem != null) {
+                    var photos by remember(selectedItem.id) {
+                        mutableStateOf<List<InventoryPhotoFile>>(emptyList())
+                    }
+                    var isImportingPhoto by remember(selectedItem.id) {
+                        mutableStateOf(false)
+                    }
+                    var photoImportError by remember(selectedItem.id) {
+                        mutableStateOf<String?>(null)
+                    }
+
+                    LaunchedEffect(selectedItem.id) {
+                        photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                    }
+
                     InventoryItemDetailScreen(
                         item = selectedItem,
+                        photos = photos,
+                        isImportingPhoto = isImportingPhoto,
+                        photoImportError = photoImportError,
                         onBackClick = {
                             selectedItemId = null
                         },
                         onUpdateCoreFields = viewModel::updateCoreFields,
                         onUpdateProductDetails = viewModel::updateProductDetails,
+                        onPhotoSelected = { uri ->
+                            coroutineScope.launch {
+                                isImportingPhoto = true
+                                photoImportError = null
+                                try {
+                                    inventoryPhotoImporter.importPhoto(
+                                        inventoryItemId = selectedItem.id,
+                                        sourceUri = uri,
+                                    )
+                                    photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                                } catch (_: Exception) {
+                                    photoImportError = getString(R.string.detail_photo_import_error)
+                                } finally {
+                                    isImportingPhoto = false
+                                }
+                            }
+                        },
+                        onSetHeroPhoto = { photo ->
+                            coroutineScope.launch {
+                                inventoryMediaStore.setHeroPhoto(
+                                    inventoryItemId = selectedItem.id,
+                                    photoId = photo.photoId,
+                                )
+                                photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                            }
+                        },
+                        onDeletePhoto = { photo ->
+                            coroutineScope.launch {
+                                inventoryMediaStore.deletePhoto(photo)
+                                photos = inventoryMediaStore.listPhotos(selectedItem.id)
+                            }
+                        },
                     )
                 } else {
                     InventoryListScreen(

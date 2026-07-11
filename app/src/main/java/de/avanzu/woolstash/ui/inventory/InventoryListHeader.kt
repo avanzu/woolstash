@@ -4,12 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,9 +83,9 @@ private fun InventoryAddMenu(
                 onExpandedChange(true)
             },
         ) {
-            Text(
-                text = stringResource(R.string.action_add),
-                style = MaterialTheme.typography.headlineSmall,
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.action_add),
             )
         }
 
@@ -125,10 +129,13 @@ internal fun SelectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TextButton(
+        IconButton(
             onClick = onCancelClick,
         ) {
-            Text(stringResource(R.string.action_cancel))
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.action_cancel),
+            )
         }
 
         Text(
@@ -140,10 +147,14 @@ internal fun SelectionHeader(
             fontWeight = FontWeight.SemiBold,
         )
 
-        TextButton(
+        IconButton(
             onClick = onDeleteClick,
         ) {
-            Text(stringResource(R.string.action_delete))
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.action_delete),
+                tint = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }
