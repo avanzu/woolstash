@@ -22,7 +22,6 @@ import java.time.format.DateTimeFormatter
 @Composable
 internal fun InventoryItem.summaryLine(): String {
     val parts = listOfNotNull(
-        productTypeLabel(),
         colorDescription,
         materialDescription,
         weight?.let { weight -> formatGrams(weight.grams) },
@@ -30,7 +29,7 @@ internal fun InventoryItem.summaryLine(): String {
         manufacturer,
     )
 
-    return parts.joinToString(separator = " · ")
+    return parts.joinToString(separator = ", ")
 }
 
 @Composable
@@ -59,7 +58,7 @@ private fun YarnDetails.yarnSummaryLine(): String {
         yarnWeight?.label(),
     )
 
-    return parts.joinToString(separator = " · ")
+    return parts.joinToString(separator = ", ")
 }
 
 @Composable
@@ -70,7 +69,7 @@ private fun FiberDetails.fiberDetailsLine(): String {
         intendedSpin,
     )
 
-    return parts.joinToString(separator = " · ")
+    return parts.joinToString(separator = ", ")
 }
 
 @Composable

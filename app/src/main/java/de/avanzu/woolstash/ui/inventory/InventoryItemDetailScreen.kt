@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,11 +27,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
@@ -53,12 +56,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import de.avanzu.woolstash.R
 import de.avanzu.woolstash.data.media.InventoryPhotoFile
 import de.avanzu.woolstash.domain.model.FiberDetails
@@ -383,6 +391,9 @@ private fun PhotoSection(
     var isPhotoToolbarVisible by remember(selectedPhoto?.photoId) {
         mutableStateOf(false)
     }
+    var fullscreenPhoto by remember {
+        mutableStateOf<InventoryPhotoFile?>(null)
+    }
 
     photoPendingDeletion?.let { photo ->
         AlertDialog(
@@ -413,6 +424,15 @@ private fun PhotoSection(
                 ) {
                     Text(stringResource(R.string.action_cancel))
                 }
+            },
+        )
+    }
+
+    fullscreenPhoto?.let { photo ->
+        FullscreenPhotoDialog(
+            photo = photo,
+            onDismiss = {
+                fullscreenPhoto = null
             },
         )
     }
@@ -449,6 +469,9 @@ private fun PhotoSection(
                         isPhotoToolbarVisible = visible
                     },
                     onSetHeroPhoto = onSetHeroPhoto,
+                    onOpenFullscreenClick = {
+                        fullscreenPhoto = selectedPhoto
+                    },
                     onDeletePhotoClick = {
                         photoPendingDeletion = selectedPhoto
                     },
@@ -512,6 +535,7 @@ private fun SelectedPhotoActionOverlay(
     isToolbarVisible: Boolean,
     onToolbarVisibilityChange: (Boolean) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
+    onOpenFullscreenClick: () -> Unit,
     onDeletePhotoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -556,6 +580,15 @@ private fun SelectedPhotoActionOverlay(
                         )
                     }
                     IconButton(
+                        onClick = onOpenFullscreenClick,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ZoomIn,
+                            contentDescription = stringResource(R.string.detail_photo_open_fullscreen),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(
                         onClick = onDeletePhotoClick,
                     ) {
                         Icon(
@@ -582,6 +615,80 @@ private fun SelectedPhotoActionOverlay(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.detail_photo_toggle_actions),
             )
+        }
+    }
+}
+
+@Composable
+private fun FullscreenPhotoDialog(
+    photo: InventoryPhotoFile,
+    onDismiss: () -> Unit,
+) {
+    var scale by remember(photo.photoId) {
+        mutableStateOf(1f)
+    }
+    var offset by remember(photo.photoId) {
+        mutableStateOf(Offset.Zero)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.96f),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                LocalPhotoImage(
+                    file = photo.displayFile,
+                    contentDescription = stringResource(R.string.detail_photo_content_description),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(photo.photoId) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                val nextScale = (scale * zoom).coerceIn(
+                                    minimumValue = 1f,
+                                    maximumValue = 5f,
+                                )
+                                scale = nextScale
+                                offset = if (nextScale == 1f) {
+                                    Offset.Zero
+                                } else {
+                                    offset + pan
+                                }
+                            }
+                        }
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        },
+                    contentScale = ContentScale.Fit,
+                )
+
+                FilledIconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    shape = CircleShape,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.detail_photo_close_fullscreen),
+                    )
+                }
+            }
         }
     }
 }

@@ -1,8 +1,10 @@
 package de.avanzu.woolstash.ui.inventory
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,12 +14,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.avanzu.woolstash.R
 import de.avanzu.woolstash.data.media.InventoryPhotoFile
@@ -44,6 +52,10 @@ internal fun InventoryItemCard(
     onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var areTagsExpanded by rememberSaveable(item.id.value) {
+        mutableStateOf(false)
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -71,27 +83,38 @@ internal fun InventoryItemCard(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
                     text = item.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
-                    text = item.summaryLine(),
+                    text = item.productTypeLabel(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+
+                InventorySupportingText(item = item)
 
                 ProductDetailsLine(
                     details = item.details,
                 )
 
                 if (item.tags.isNotEmpty()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
                     TagRow(
                         tags = item.tags.map { tag -> tag.name },
+                        isExpanded = areTagsExpanded,
+                        onExpandedChange = { areExpanded ->
+                            areTagsExpanded = areExpanded
+                        },
                         onTagClick = onTagClick,
                     )
                 }
@@ -140,6 +163,24 @@ private fun ProductType.placeholderDrawableRes(): Int {
 }
 
 @Composable
+private fun InventorySupportingText(
+    item: InventoryItem,
+    modifier: Modifier = Modifier,
+) {
+    val text = item.summaryLine()
+    if (text.isNotBlank()) {
+        Text(
+            modifier = modifier,
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
 private fun ProductDetailsLine(
     details: ProductDetails,
     modifier: Modifier = Modifier,
@@ -149,8 +190,10 @@ private fun ProductDetailsLine(
         Text(
             modifier = modifier,
             text = text,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -158,23 +201,64 @@ private fun ProductDetailsLine(
 @Composable
 private fun TagRow(
     tags: List<String>,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val visibleTagCount = 3
+    val visibleTags = if (isExpanded) {
+        tags
+    } else {
+        tags.take(visibleTagCount)
+    }
+    val hiddenTagCount = tags.size - visibleTags.size
+
     FlowRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        tags.forEach { tag ->
-            AssistChip(
-                onClick = {
-                    onTagClick(tag)
-                },
-                label = {
-                    Text(tag)
-                },
+        visibleTags.forEach { tag ->
+            InventoryTag(
+                text = tag,
+                onClick = { onTagClick(tag) },
             )
         }
+
+        if (hiddenTagCount > 0) {
+            InventoryTag(
+                text = stringResource(R.string.inventory_tags_show_more, hiddenTagCount),
+                onClick = { onExpandedChange(true) },
+            )
+        } else if (isExpanded && tags.size > visibleTagCount) {
+            InventoryTag(
+                text = stringResource(R.string.inventory_tags_show_less),
+                onClick = { onExpandedChange(false) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun InventoryTag(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.extraSmall,
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

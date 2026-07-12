@@ -109,6 +109,8 @@
     <string name="inventory_selection_count">%1$d Ausgewählt</string>
     <string name="inventory_item_thumbnail_content_description">Vorschaubild des Bestandseintrags</string>
     <string name="inventory_item_thumbnail_placeholder_content_description">Platzhalterbild des Bestandseintrags</string>
+    <string name="inventory_tags_show_more">%1$d weitere</string>
+    <string name="inventory_tags_show_less">Weniger</string>
     <string name="inventory_type_filter_all">Alle</string>
     <string name="inventory_search_placeholder">Suchen</string>
     <string name="inventory_tag_filter_all">Alle Tags</string>
@@ -137,6 +139,8 @@
     <string name="detail_photo_importing">Wird importiert...</string>
     <string name="detail_photo_import_error">Foto konnte nicht importiert werden.</string>
     <string name="detail_photo_content_description">Foto des Bestandseintrags</string>
+    <string name="detail_photo_open_fullscreen">Bild vergrößern</string>
+    <string name="detail_photo_close_fullscreen">Vollbild schließen</string>
     <string name="detail_photo_set_hero">Als Titelbild</string>
     <string name="detail_photo_is_hero">Ist Titelbild</string>
     <string name="detail_photo_toggle_actions">Bildaktionen anzeigen oder ausblenden</string>
