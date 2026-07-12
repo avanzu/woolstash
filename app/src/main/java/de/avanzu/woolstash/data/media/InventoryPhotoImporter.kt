@@ -33,12 +33,9 @@ class InventoryPhotoImporter(
                     sourceUri = sourceUri,
                     targetFile = sourceFile,
                 )
-                val sourceBitmap = decodeBitmap(
-                    sourceFile = sourceFile,
-                    maxDimension = DISPLAY_MAX_DIMENSION,
-                )
+                val sourceBitmap = decodeBitmap(sourceFile)
                 val orientedBitmap = sourceBitmap.rotateToExifOrientation(sourceFile)
-                val displayBitmap = orientedBitmap.scaleDownToMaxDimension(DISPLAY_MAX_DIMENSION)
+                val displayBitmap = orientedBitmap
                 val thumbnailBitmap = orientedBitmap.scaleDownToMaxDimension(THUMBNAIL_MAX_DIMENSION)
 
                 displayBitmap.writeWebp(
@@ -106,24 +103,8 @@ class InventoryPhotoImporter(
         )
     }
 
-    private fun decodeBitmap(
-        sourceFile: File,
-        maxDimension: Int,
-    ): Bitmap {
-        val bounds = BitmapFactory.Options().apply {
-            inJustDecodeBounds = true
-        }
-        BitmapFactory.decodeFile(sourceFile.absolutePath, bounds)
-
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-            throw IOException("Could not decode image bounds.")
-        }
-
-        val decodeOptions = BitmapFactory.Options().apply {
-            inSampleSize = bounds.calculateSampleSize(maxDimension)
-        }
-
-        return BitmapFactory.decodeFile(sourceFile.absolutePath, decodeOptions)
+    private fun decodeBitmap(sourceFile: File): Bitmap {
+        return BitmapFactory.decodeFile(sourceFile.absolutePath)
             ?: throw IOException("Could not decode image: ${sourceFile.absolutePath}")
     }
 
@@ -159,20 +140,11 @@ class InventoryPhotoImporter(
     }
 
     companion object {
-        private const val DISPLAY_MAX_DIMENSION = 1600
         private const val THUMBNAIL_MAX_DIMENSION = 320
-        private const val DISPLAY_WEBP_QUALITY = 85
+        private const val DISPLAY_WEBP_QUALITY = 78
         private const val THUMBNAIL_WEBP_QUALITY = 75
         private const val TEMP_SOURCE_FILE_NAME = "source.tmp"
     }
-}
-
-private fun BitmapFactory.Options.calculateSampleSize(maxDimension: Int): Int {
-    var sampleSize = 1
-    while (max(outWidth / sampleSize, outHeight / sampleSize) > maxDimension * 2) {
-        sampleSize *= 2
-    }
-    return sampleSize
 }
 
 private fun Bitmap.scaleDownToMaxDimension(maxDimension: Int): Bitmap {
