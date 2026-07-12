@@ -35,10 +35,14 @@ import kotlinx.coroutines.launch
 fun InventoryListScreen(
     items: List<InventoryItem>,
     photoPreviews: Map<InventoryItemId, InventoryPhotoFile>,
+    isStagingActive: Boolean,
+    isBackupBusy: Boolean,
     onDeleteItemsConfirmed: (Set<InventoryItemId>) -> Unit,
     onItemClick: (InventoryItem) -> Unit,
     onAddYarnClick: () -> Unit,
     onAddFiberClick: () -> Unit,
+    onCreateBackupClick: () -> Unit,
+    onRestoreBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedItemIds by remember {
@@ -158,6 +162,20 @@ fun InventoryListScreen(
                     selectProductTypeFilter(productType)
                 },
                 onSortSelected = { sort -> selectSort(sort) },
+                isStagingActive = isStagingActive,
+                isBackupBusy = isBackupBusy,
+                onCreateBackupClick = {
+                    coroutineScope.launch {
+                        drawerState.close()
+                    }
+                    onCreateBackupClick()
+                },
+                onRestoreBackupClick = {
+                    coroutineScope.launch {
+                        drawerState.close()
+                    }
+                    onRestoreBackupClick()
+                },
             )
         },
         modifier = modifier,
@@ -272,10 +290,14 @@ private fun InventoryListScreenPreview() {
         InventoryListScreen(
             items = SampleInventoryItems.items,
             photoPreviews = emptyMap(),
+            isStagingActive = false,
+            isBackupBusy = false,
             onDeleteItemsConfirmed = {},
             onItemClick = {},
             onAddYarnClick = {},
             onAddFiberClick = {},
+            onCreateBackupClick = {},
+            onRestoreBackupClick = {},
         )
     }
 }

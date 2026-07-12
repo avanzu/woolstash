@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Menu
@@ -153,10 +155,14 @@ internal fun InventoryFilterDrawerContent(
     activeTagFilter: String?,
     activeProductTypeFilter: ProductType?,
     activeSort: InventoryListSort,
+    isStagingActive: Boolean,
+    isBackupBusy: Boolean,
     onTagFilterSelected: (String) -> Unit,
     onTagFilterCleared: () -> Unit,
     onProductTypeFilterSelected: (ProductType?) -> Unit,
     onSortSelected: (InventoryListSort) -> Unit,
+    onCreateBackupClick: () -> Unit,
+    onRestoreBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isTagSectionExpanded by remember(activeTagFilter) {
@@ -263,6 +269,44 @@ internal fun InventoryFilterDrawerContent(
                     }
                 }
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            DrawerSectionTitle(text = stringResource(R.string.drawer_section_backup))
+            NavigationDrawerItem(
+                label = {
+                    Text(stringResource(R.string.backup_action_create))
+                },
+                selected = false,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.FileUpload,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    if (!isStagingActive && !isBackupBusy) {
+                        onCreateBackupClick()
+                    }
+                },
+            )
+            NavigationDrawerItem(
+                label = {
+                    Text(stringResource(R.string.backup_action_restore))
+                },
+                selected = false,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.FileDownload,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    if (!isStagingActive && !isBackupBusy) {
+                        onRestoreBackupClick()
+                    }
+                },
+            )
         }
     }
 }
@@ -467,10 +511,14 @@ private fun InventoryFilterDrawerContentPreview() {
             activeTagFilter = "socken",
             activeProductTypeFilter = ProductType.Yarn,
             activeSort = InventoryListSort.TypeThenName,
+            isStagingActive = false,
+            isBackupBusy = false,
             onTagFilterSelected = {},
             onTagFilterCleared = {},
             onProductTypeFilterSelected = {},
             onSortSelected = {},
+            onCreateBackupClick = {},
+            onRestoreBackupClick = {},
         )
     }
 }

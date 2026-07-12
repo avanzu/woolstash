@@ -22,6 +22,9 @@ abstract class WoolStashDatabase : RoomDatabase() {
     abstract fun inventoryReferenceValueDao(): InventoryReferenceValueDao
 
     companion object {
+        const val DATABASE_NAME = "wool_stash.db"
+        const val DATABASE_VERSION = 4
+
         val Migration1To2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
