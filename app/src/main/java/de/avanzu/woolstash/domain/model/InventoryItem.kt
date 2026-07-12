@@ -10,6 +10,8 @@ data class InventoryItem(
     val materialDescription: String? = null,
     val weight: Weight? = null,
     val location: String? = null,
+    val manufacturer: String? = null,
+    val purchaseSource: String? = null,
     val status: InventoryItemStatus = InventoryItemStatus.Active,
     val tags: List<Tag> = emptyList(),
     val photos: List<PhotoRef> = emptyList(),
@@ -43,4 +45,3 @@ enum class InventoryItemStatus {
 sealed interface ProductDetails {
     val productType: ProductType
 }
-

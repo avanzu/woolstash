@@ -27,6 +27,7 @@ internal fun InventoryItem.summaryLine(): String {
         materialDescription,
         weight?.let { weight -> formatGrams(weight.grams) },
         location,
+        manufacturer,
     )
 
     return parts.joinToString(separator = " · ")

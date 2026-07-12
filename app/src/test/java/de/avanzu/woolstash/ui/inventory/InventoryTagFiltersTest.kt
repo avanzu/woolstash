@@ -82,6 +82,8 @@ class InventoryTagFiltersTest {
         assertEquals(listOf(items[0]), items.filterBySearchQuery("blau"))
         assertEquals(listOf(items[0]), items.filterBySearchQuery("Merino"))
         assertEquals(listOf(items[1]), items.filterBySearchQuery("Faserkiste"))
+        assertEquals(listOf(items[0]), items.filterBySearchQuery("Malabrigo"))
+        assertEquals(listOf(items[1]), items.filterBySearchQuery("Faserhof"))
         assertEquals(listOf(items[2]), items.filterBySearchQuery("Projektidee"))
         assertEquals(listOf(items[1]), items.filterBySearchQuery("natur"))
     }
@@ -143,6 +145,8 @@ class InventoryTagFiltersTest {
                 colorDescription = "Blaugrün",
                 materialDescription = "Merino / Polyamid",
                 location = "Kiste Schlafzimmer",
+                manufacturer = "Malabrigo",
+                purchaseSource = "Wollgeschäft",
                 tags = listOf(Tag("socken")),
                 details = YarnDetails(),
                 updatedAt = Instant.parse("2026-01-01T10:00:00Z"),
@@ -152,6 +156,7 @@ class InventoryTagFiltersTest {
                 colorDescription = "Naturgrau",
                 materialDescription = "Bluefaced Leicester",
                 location = "Faserkiste",
+                purchaseSource = "Faserhof",
                 tags = listOf(Tag("spinnen"), Tag("natur")),
                 details = FiberDetails(),
                 updatedAt = Instant.parse("2026-01-02T10:00:00Z"),

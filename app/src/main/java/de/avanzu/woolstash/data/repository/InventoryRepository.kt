@@ -4,11 +4,14 @@ import androidx.room.withTransaction
 import de.avanzu.woolstash.data.local.WoolStashDatabase
 import de.avanzu.woolstash.data.local.toDomain
 import de.avanzu.woolstash.data.local.toEntity
+import de.avanzu.woolstash.data.local.toReferenceValueEntities
 import de.avanzu.woolstash.data.local.toTagEntities
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.InventoryReferenceValue
 import de.avanzu.woolstash.domain.model.Tag
 import de.avanzu.woolstash.domain.model.normalizedDistinct
+import de.avanzu.woolstash.domain.model.toInventoryReferenceName
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
 
@@ -17,6 +20,7 @@ class InventoryRepository(
 ) {
     private val inventoryItemDao = database.inventoryItemDao()
     private val inventoryItemTagDao = database.inventoryItemTagDao()
+    private val inventoryReferenceValueDao = database.inventoryReferenceValueDao()
 
     fun observeItems(): Flow<List<InventoryItem>> {
         return combine(
@@ -36,10 +40,33 @@ class InventoryRepository(
         }
     }
 
+    fun observeReferenceValues(): Flow<List<InventoryReferenceValue>> {
+        return inventoryReferenceValueDao.observeAll()
+            .combine(inventoryItemDao.observeAll()) { referenceValues, items ->
+                val itemReferenceValues = items
+                    .map { entity -> entity.toDomain() }
+                    .flatMap { item -> item.toReferenceValueEntities() }
+
+                (referenceValues + itemReferenceValues)
+                    .distinct()
+                    .map { entity -> entity.toDomain() }
+                    .sortedWith(
+                        compareBy<InventoryReferenceValue> { value -> value.type.name }
+                            .thenBy { value -> value.name.lowercase() },
+                    )
+            }
+    }
+
     suspend fun save(item: InventoryItem) {
-        val normalizedItem = item.copy(tags = item.tags.normalizedDistinct())
+        val normalizedItem = item.copy(
+            location = item.location.toInventoryReferenceName(),
+            manufacturer = item.manufacturer.toInventoryReferenceName(),
+            purchaseSource = item.purchaseSource.toInventoryReferenceName(),
+            tags = item.tags.normalizedDistinct(),
+        )
 
         database.withTransaction {
+            inventoryReferenceValueDao.insertAll(normalizedItem.toReferenceValueEntities())
             inventoryItemDao.upsert(normalizedItem.toEntity())
             inventoryItemTagDao.deleteByItemId(normalizedItem.id.value)
             inventoryItemTagDao.insertAll(normalizedItem.toTagEntities())

@@ -7,13 +7,16 @@ import de.avanzu.woolstash.data.repository.InventoryRepository
 import de.avanzu.woolstash.domain.model.FiberDetails
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
+import de.avanzu.woolstash.domain.model.InventoryReferenceType
 import de.avanzu.woolstash.domain.model.ProductDetails
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.domain.model.Tag
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
 import de.avanzu.woolstash.domain.model.normalizedDistinct
+import de.avanzu.woolstash.domain.model.toInventoryReferenceName
 import java.time.Instant
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -28,6 +31,27 @@ class InventoryListViewModel(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList(),
+            )
+
+    val referenceSuggestions: StateFlow<InventoryReferenceSuggestions> =
+        inventoryRepository.observeReferenceValues()
+            .map { values ->
+                InventoryReferenceSuggestions(
+                    locations = values
+                        .filter { value -> value.type == InventoryReferenceType.Location }
+                        .map { value -> value.name },
+                    manufacturers = values
+                        .filter { value -> value.type == InventoryReferenceType.Manufacturer }
+                        .map { value -> value.name },
+                    purchaseSources = values
+                        .filter { value -> value.type == InventoryReferenceType.PurchaseSource }
+                        .map { value -> value.name },
+                )
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = InventoryReferenceSuggestions(),
             )
 
     init {
@@ -117,6 +141,9 @@ data class CreateInventoryItemInput(
     val colorDescription: String?,
     val materialDescription: String?,
     val weightGrams: Double?,
+    val location: String?,
+    val manufacturer: String?,
+    val purchaseSource: String?,
     val tags: List<Tag>,
 ) {
     fun toInventoryItem(details: de.avanzu.woolstash.domain.model.ProductDetails): InventoryItem {
@@ -125,6 +152,9 @@ data class CreateInventoryItemInput(
             colorDescription = colorDescription.cleanOrNull(),
             materialDescription = materialDescription.cleanOrNull(),
             weight = weightGrams?.let { grams -> Weight(grams) },
+            location = location.toInventoryReferenceName(),
+            manufacturer = manufacturer.toInventoryReferenceName(),
+            purchaseSource = purchaseSource.toInventoryReferenceName(),
             tags = tags.normalizedDistinct(),
             details = details,
         )
@@ -141,11 +171,20 @@ data class CreateInventoryItemInput(
                     source = item.weight?.source ?: de.avanzu.woolstash.domain.model.MeasurementSource.Unknown,
                 )
             },
+            location = location.toInventoryReferenceName(),
+            manufacturer = manufacturer.toInventoryReferenceName(),
+            purchaseSource = purchaseSource.toInventoryReferenceName(),
             tags = tags.normalizedDistinct(),
             updatedAt = Instant.now(),
         )
     }
 }
+
+data class InventoryReferenceSuggestions(
+    val locations: List<String> = emptyList(),
+    val manufacturers: List<String> = emptyList(),
+    val purchaseSources: List<String> = emptyList(),
+)
 
 private fun String?.cleanOrNull(): String? {
     return this?.trim()?.takeIf { value -> value.isNotEmpty() }

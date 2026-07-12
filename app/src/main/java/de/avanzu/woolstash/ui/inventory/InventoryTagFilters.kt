@@ -88,6 +88,8 @@ private fun InventoryItem.searchableText(): List<String> {
         colorDescription,
         materialDescription,
         location,
+        manufacturer,
+        purchaseSource,
         notes,
     ) + tags.map { tag -> tag.name }
 }

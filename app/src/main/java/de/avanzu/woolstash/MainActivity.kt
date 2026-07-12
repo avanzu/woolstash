@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
             .addMigrations(
                 WoolStashDatabase.Migration1To2,
                 WoolStashDatabase.Migration2To3,
+                WoolStashDatabase.Migration3To4,
             )
             .build()
     }
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                     factory = InventoryListViewModelFactory(inventoryRepository),
                 )
                 val items by viewModel.items.collectAsStateWithLifecycle()
+                val referenceSuggestions by viewModel.referenceSuggestions.collectAsStateWithLifecycle()
                 var selectedItemId by remember {
                     mutableStateOf<InventoryItemId?>(null)
                 }
@@ -120,6 +122,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         tagSuggestions = tagSuggestions,
+                        referenceSuggestions = referenceSuggestions,
                     )
                 } else if (selectedItem != null) {
                     var photos by remember(selectedItem.id) {
@@ -147,6 +150,7 @@ class MainActivity : ComponentActivity() {
                         onUpdateCoreFields = viewModel::updateCoreFields,
                         onUpdateProductDetails = viewModel::updateProductDetails,
                         tagSuggestions = tagSuggestions,
+                        referenceSuggestions = referenceSuggestions,
                         onPhotoSelected = { uri ->
                             coroutineScope.launch {
                                 isImportingPhoto = true

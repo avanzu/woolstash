@@ -80,6 +80,7 @@ fun InventoryItemDetailScreen(
     onUpdateCoreFields: (InventoryItem, CreateInventoryItemInput, () -> Unit) -> Unit,
     onUpdateProductDetails: (InventoryItem, ProductDetails, () -> Unit) -> Unit,
     tagSuggestions: List<String>,
+    referenceSuggestions: InventoryReferenceSuggestions,
     onPhotoSelected: (Uri) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
@@ -150,6 +151,7 @@ fun InventoryItemDetailScreen(
                             }
                         },
                         tagSuggestions = tagSuggestions,
+                        referenceSuggestions = referenceSuggestions,
                     )
                 }
 
@@ -626,6 +628,7 @@ private fun OverviewSection(
     onCancelEdit: () -> Unit,
     onSave: (CreateInventoryItemInput) -> Unit,
     tagSuggestions: List<String>,
+    referenceSuggestions: InventoryReferenceSuggestions,
 ) {
     EditableDetailSection(
         title = stringResource(R.string.detail_section_overview),
@@ -636,8 +639,12 @@ private fun OverviewSection(
                 initialColorDescription = item.colorDescription,
                 initialMaterialDescription = item.materialDescription,
                 initialWeightGrams = item.weight?.grams,
+                initialLocation = item.location,
+                initialManufacturer = item.manufacturer,
+                initialPurchaseSource = item.purchaseSource,
                 initialTags = item.tags,
                 tagSuggestions = tagSuggestions,
+                referenceSuggestions = referenceSuggestions,
                 submitLabel = stringResource(R.string.action_save),
                 onSubmit = onSave,
                 onCancel = onCancelEdit,
@@ -662,6 +669,14 @@ private fun OverviewSection(
             DetailField(
                 label = stringResource(R.string.detail_field_location),
                 value = item.location,
+            )
+            DetailField(
+                label = stringResource(R.string.detail_field_manufacturer),
+                value = item.manufacturer,
+            )
+            DetailField(
+                label = stringResource(R.string.detail_field_purchase_source),
+                value = item.purchaseSource,
             )
             DetailField(
                 label = stringResource(R.string.detail_field_status),
@@ -889,6 +904,7 @@ private fun InventoryItemDetailScreenPreview() {
             onBackClick = {},
             onUpdateCoreFields = { _, _, onUpdated -> onUpdated() },
             onUpdateProductDetails = { _, _, onUpdated -> onUpdated() },
+            referenceSuggestions = InventoryReferenceSuggestions(),
             tagSuggestions = listOf("socken", "natur"),
             onPhotoSelected = {},
             onSetHeroPhoto = {},

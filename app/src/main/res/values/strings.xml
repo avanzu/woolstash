@@ -153,6 +153,8 @@
     <string name="detail_field_material">Material</string>
     <string name="detail_field_weight">Gewicht</string>
     <string name="detail_field_location">Lagerort</string>
+    <string name="detail_field_manufacturer">Hersteller</string>
+    <string name="detail_field_purchase_source">Gekauft bei</string>
     <string name="detail_field_status">Status</string>
     <string name="detail_field_created_at">Angelegt</string>
     <string name="detail_field_updated_at">Geändert</string>

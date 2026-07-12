@@ -7,6 +7,8 @@ import de.avanzu.woolstash.domain.model.Gauge
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.InventoryItemStatus
+import de.avanzu.woolstash.domain.model.InventoryReferenceType
+import de.avanzu.woolstash.domain.model.InventoryReferenceValue
 import de.avanzu.woolstash.domain.model.Length
 import de.avanzu.woolstash.domain.model.LengthBasis
 import de.avanzu.woolstash.domain.model.MeasurementSource
@@ -35,6 +37,8 @@ fun InventoryItem.toEntity(): InventoryItemEntity {
         weightSource = weight?.source?.name,
 
         location = location,
+        manufacturer = manufacturer,
+        purchaseSource = purchaseSource,
         status = status.name,
         notes = notes,
 
@@ -84,6 +88,8 @@ fun InventoryItemEntity.toDomain(tags: List<Tag>): InventoryItem {
             )
         },
         location = location,
+        manufacturer = manufacturer,
+        purchaseSource = purchaseSource,
         status = InventoryItemStatus.valueOf(status),
         tags = tags,
         photos = emptyList(),
@@ -103,6 +109,36 @@ fun InventoryItem.toTagEntities(): List<InventoryItemTagEntity> {
                 name = tag.name,
             )
         }
+}
+
+fun InventoryItem.toReferenceValueEntities(): List<InventoryReferenceValueEntity> {
+    return listOfNotNull(
+        location?.let { name ->
+            InventoryReferenceValueEntity(
+                type = InventoryReferenceType.Location.name,
+                name = name,
+            )
+        },
+        manufacturer?.let { name ->
+            InventoryReferenceValueEntity(
+                type = InventoryReferenceType.Manufacturer.name,
+                name = name,
+            )
+        },
+        purchaseSource?.let { name ->
+            InventoryReferenceValueEntity(
+                type = InventoryReferenceType.PurchaseSource.name,
+                name = name,
+            )
+        },
+    ).distinct()
+}
+
+fun InventoryReferenceValueEntity.toDomain(): InventoryReferenceValue {
+    return InventoryReferenceValue(
+        type = InventoryReferenceType.valueOf(type),
+        name = name,
+    )
 }
 
 private fun InventoryItemEntity.toProductDetails() = when (ProductType.valueOf(productType)) {

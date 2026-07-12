@@ -41,6 +41,7 @@ fun CreateInventoryItemScreen(
     onCreateFiber: (CreateInventoryItemInput) -> Unit,
     modifier: Modifier = Modifier,
     tagSuggestions: List<String> = emptyList(),
+    referenceSuggestions: InventoryReferenceSuggestions = InventoryReferenceSuggestions(),
 ) {
     val itemType = requireNotNull(type) { "CreateInventoryItemScreen requires a product type." }
     val title = when (itemType) {
@@ -77,8 +78,12 @@ fun CreateInventoryItemScreen(
                         initialColorDescription = null,
                         initialMaterialDescription = null,
                         initialWeightGrams = null,
+                        initialLocation = null,
+                        initialManufacturer = null,
+                        initialPurchaseSource = null,
                         initialTags = emptyList(),
                         tagSuggestions = tagSuggestions,
+                        referenceSuggestions = referenceSuggestions,
                         submitLabel = stringResource(R.string.action_create),
                         onSubmit = { input ->
                             when (itemType) {
@@ -143,6 +148,11 @@ private fun CreateInventoryItemScreenPreview() {
             onCreateYarn = {},
             onCreateFiber = {},
             tagSuggestions = listOf("socken", "natur"),
+            referenceSuggestions = InventoryReferenceSuggestions(
+                locations = listOf("Kiste Schlafzimmer"),
+                manufacturers = listOf("Malabrigo"),
+                purchaseSources = listOf("Wollgeschäft"),
+            ),
         )
     }
 }

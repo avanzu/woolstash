@@ -17,6 +17,8 @@ data class InventoryItemEntity(
     val weightSource: String?,
 
     val location: String?,
+    val manufacturer: String?,
+    val purchaseSource: String?,
     val status: String,
     val notes: String?,
 

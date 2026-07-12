@@ -18,11 +18,14 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,8 +50,12 @@ internal fun InventoryCoreFieldsEditor(
     initialColorDescription: String?,
     initialMaterialDescription: String?,
     initialWeightGrams: Double?,
+    initialLocation: String?,
+    initialManufacturer: String?,
+    initialPurchaseSource: String?,
     initialTags: List<Tag>,
     tagSuggestions: List<String>,
+    referenceSuggestions: InventoryReferenceSuggestions,
     submitLabel: String,
     onSubmit: (CreateInventoryItemInput) -> Unit,
     modifier: Modifier = Modifier,
@@ -59,6 +67,15 @@ internal fun InventoryCoreFieldsEditor(
     }
     var materialDescription by remember(initialMaterialDescription) {
         mutableStateOf(initialMaterialDescription.orEmpty())
+    }
+    var location by remember(initialLocation) {
+        mutableStateOf(initialLocation.orEmpty())
+    }
+    var manufacturer by remember(initialManufacturer) {
+        mutableStateOf(initialManufacturer.orEmpty())
+    }
+    var purchaseSource by remember(initialPurchaseSource) {
+        mutableStateOf(initialPurchaseSource.orEmpty())
     }
     var weightText by remember(initialWeightGrams) {
         mutableStateOf(initialWeightGrams?.let { grams -> WeightInputUnit.Grams.fromGrams(grams).toString() }.orEmpty())
@@ -125,6 +142,27 @@ internal fun InventoryCoreFieldsEditor(
                 Text(stringResource(R.string.detail_field_material))
             },
             singleLine = true,
+        )
+
+        ReferenceAutocompleteField(
+            value = location,
+            onValueChange = { value -> location = value },
+            label = stringResource(R.string.detail_field_location),
+            suggestions = referenceSuggestions.locations,
+        )
+
+        ReferenceAutocompleteField(
+            value = manufacturer,
+            onValueChange = { value -> manufacturer = value },
+            label = stringResource(R.string.detail_field_manufacturer),
+            suggestions = referenceSuggestions.manufacturers,
+        )
+
+        ReferenceAutocompleteField(
+            value = purchaseSource,
+            onValueChange = { value -> purchaseSource = value },
+            label = stringResource(R.string.detail_field_purchase_source),
+            suggestions = referenceSuggestions.purchaseSources,
         )
 
         OutlinedTextField(
@@ -251,12 +289,96 @@ internal fun InventoryCoreFieldsEditor(
                             colorDescription = colorDescription,
                             materialDescription = materialDescription,
                             weightGrams = normalizedWeightGrams,
+                            location = location,
+                            manufacturer = manufacturer,
+                            purchaseSource = purchaseSource,
                             tags = tags,
                         ),
                     )
                 },
             ) {
                 Text(submitLabel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferenceAutocompleteField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    suggestions: List<String>,
+    modifier: Modifier = Modifier,
+) {
+    var hasFocus by remember {
+        mutableStateOf(false)
+    }
+    var isMenuDismissed by remember {
+        mutableStateOf(false)
+    }
+    val trimmedValue = value.trim()
+    val filteredSuggestions = suggestions
+        .distinct()
+        .filter { suggestion ->
+            trimmedValue.length >= 3 &&
+                suggestion.contains(trimmedValue, ignoreCase = true)
+        }
+        .take(6)
+    val showSuggestions = hasFocus && !isMenuDismissed && filteredSuggestions.isNotEmpty()
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    hasFocus = focusState.isFocused
+                    if (focusState.isFocused) {
+                        isMenuDismissed = false
+                    }
+                },
+            value = value,
+            onValueChange = { newValue ->
+                onValueChange(newValue)
+                isMenuDismissed = false
+            },
+            label = {
+                Text(label)
+            },
+            singleLine = true,
+        )
+
+        if (showSuggestions) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraSmall,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                tonalElevation = 2.dp,
+                shadowElevation = 2.dp,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    filteredSuggestions.forEachIndexed { index, suggestion ->
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onValueChange(suggestion)
+                                    isMenuDismissed = true
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            text = suggestion,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (index < filteredSuggestions.lastIndex) {
+                            HorizontalDivider()
+                        }
+                    }
+                }
             }
         }
     }
