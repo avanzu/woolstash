@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-labelledby="title desc">
+  <title id="title">WoolStash mark</title>
+  <desc id="desc">A terracotta yarn ball with a loose strand shaped like a small w.</desc>
+  <circle cx="54" cy="54" r="54" fill="#F7EFE3"/>
+  <path d="M54 24C41.3 24 31 33.8 31 46.5S41.3 69 54 69s23-9.8 23-22.5S66.7 24 54 24Z" fill="#B87555" stroke="#5B3A45" stroke-width="3.8"/>
+  <g fill="none" stroke="#5B3A45" stroke-linecap="round" stroke-width="3.5">
+    <path d="M36 31.5c13 1.5 29 10.5 38 23"/>
+    <path d="M31.8 43C44 39.5 62 41.5 76.6 48.5"/>
+    <path d="M33.5 57.8C46 49.2 58.5 39 70.8 32.2"/>
+  </g>
+  <path d="M42 66.5C50 53 61.2 43.2 74 37.3" fill="none" stroke="#F7EFE3" stroke-linecap="round" stroke-width="3.6"/>
+  <path d="M36.5 65C31.5 71.5 32 82.5 40.5 85S49 77.5 54 77.5 59 87.5 67.5 85c5.7-1.7 6.7-7.2 11-9.2" fill="none" stroke="#5B3A45" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M36.5 65C31.5 71.5 32 82.5 40.5 85S49 77.5 54 77.5 59 87.5 67.5 85c5.7-1.7 6.7-7.2 11-9.2" fill="none" stroke="#B87555" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8"/>
+</svg>
