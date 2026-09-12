@@ -9,18 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,27 +46,27 @@ internal fun YarnDetailsEditor(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var lengthText by remember(details) { mutableStateOf(details.length?.meters?.toString().orEmpty()) }
-    var lengthUnit by remember(details) { mutableStateOf(LengthInputUnit.Meters) }
-    var lengthBasis by remember(details) { mutableStateOf(details.lengthBasis) }
-    var yarnWeight by remember(details) { mutableStateOf(details.yarnWeight) }
-    var skeinCountText by remember(details) { mutableStateOf(details.skeinCount?.toString().orEmpty()) }
-    var needleSizeText by remember(details) {
+    var lengthText by rememberSaveable(details) { mutableStateOf(details.length?.meters?.toString().orEmpty()) }
+    var lengthUnit by rememberSaveable(details) { mutableStateOf(LengthInputUnit.Meters) }
+    var lengthBasis by rememberSaveable(details) { mutableStateOf(details.lengthBasis) }
+    var yarnWeight by rememberSaveable(details) { mutableStateOf(details.yarnWeight) }
+    var skeinCountText by rememberSaveable(details) { mutableStateOf(details.skeinCount?.toString().orEmpty()) }
+    var needleSizeText by rememberSaveable(details) {
         mutableStateOf(details.recommendedNeedleSize?.millimeters?.toString().orEmpty())
     }
-    var gaugeStitchesText by remember(details) {
+    var gaugeStitchesText by rememberSaveable(details) {
         mutableStateOf(details.gauge?.stitchesPer10cm?.toString().orEmpty())
     }
-    var gaugeRowsText by remember(details) {
+    var gaugeRowsText by rememberSaveable(details) {
         mutableStateOf(details.gauge?.rowsPer10cm?.toString().orEmpty())
     }
-    var gaugeNeedleText by remember(details) {
+    var gaugeNeedleText by rememberSaveable(details) {
         mutableStateOf(details.gauge?.needleSize?.millimeters?.toString().orEmpty())
     }
-    var gaugeNote by remember(details) { mutableStateOf(details.gauge?.note.orEmpty()) }
-    var dyeLot by remember(details) { mutableStateOf(details.dyeLot.orEmpty()) }
-    var plyText by remember(details) { mutableStateOf(details.ply?.toString().orEmpty()) }
-    var twistDirection by remember(details) { mutableStateOf(details.twistDirection) }
+    var gaugeNote by rememberSaveable(details) { mutableStateOf(details.gauge?.note.orEmpty()) }
+    var dyeLot by rememberSaveable(details) { mutableStateOf(details.dyeLot.orEmpty()) }
+    var plyText by rememberSaveable(details) { mutableStateOf(details.ply?.toString().orEmpty()) }
+    var twistDirection by rememberSaveable(details) { mutableStateOf(details.twistDirection) }
 
     val length = parseOptionalNonNegativeDouble(lengthText)
     val skeinCount = parseOptionalNonNegativeInt(skeinCountText)
@@ -177,10 +175,11 @@ internal fun YarnDetailsEditor(
             values = TwistDirection.entries,
             onSelected = { value -> twistDirection = value },
         )
-        EditorActions(
-            canSave = canSave,
+        InventoryEditorActions(
+            canSubmit = canSave,
+            submitLabel = stringResource(R.string.action_save),
             onCancel = onCancel,
-            onSave = {
+            onSubmit = {
                 val updatedGauge = Gauge(
                     stitchesPer10cm = gaugeStitches.value,
                     rowsPer10cm = gaugeRows.value,
@@ -223,21 +222,21 @@ internal fun FiberDetailsEditor(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var fiberForm by remember(details) { mutableStateOf(details.fiberForm) }
-    var preparation by remember(details) { mutableStateOf(details.preparation) }
-    var breedOrSource by remember(details) { mutableStateOf(details.breedOrSource.orEmpty()) }
-    var stapleLengthText by remember(details) {
+    var fiberForm by rememberSaveable(details) { mutableStateOf(details.fiberForm) }
+    var preparation by rememberSaveable(details) { mutableStateOf(details.preparation) }
+    var breedOrSource by rememberSaveable(details) { mutableStateOf(details.breedOrSource.orEmpty()) }
+    var stapleLengthText by rememberSaveable(details) {
         mutableStateOf(
             details.stapleLength?.meters
                 ?.let { meters -> LengthInputUnit.Centimeters.fromMeters(meters).toString() }
                 .orEmpty(),
         )
     }
-    var stapleLengthUnit by remember(details) {
+    var stapleLengthUnit by rememberSaveable(details) {
         mutableStateOf(LengthInputUnit.Centimeters)
     }
-    var micronText by remember(details) { mutableStateOf(details.micron?.toString().orEmpty()) }
-    var intendedSpin by remember(details) { mutableStateOf(details.intendedSpin.orEmpty()) }
+    var micronText by rememberSaveable(details) { mutableStateOf(details.micron?.toString().orEmpty()) }
+    var intendedSpin by rememberSaveable(details) { mutableStateOf(details.intendedSpin.orEmpty()) }
 
     val stapleLength = parseOptionalNonNegativeDouble(stapleLengthText)
     val micron = parseOptionalNonNegativeDouble(micronText)
@@ -302,10 +301,11 @@ internal fun FiberDetailsEditor(
                 Text(stringResource(R.string.detail_field_intended_spin))
             },
         )
-        EditorActions(
-            canSave = canSave,
+        InventoryEditorActions(
+            canSubmit = canSave,
+            submitLabel = stringResource(R.string.action_save),
             onCancel = onCancel,
-            onSave = {
+            onSubmit = {
                 onSubmit(
                     details.copy(
                         fiberForm = fiberForm,
@@ -441,33 +441,6 @@ private fun <T> NullableDropdownField(
                     },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun EditorActions(
-    canSave: Boolean,
-    onCancel: () -> Unit,
-    onSave: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
-    ) {
-        IconButton(
-            onClick = onCancel,
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(R.string.action_cancel),
-            )
-        }
-        Button(
-            enabled = canSave,
-            onClick = onSave,
-        ) {
-            Text(stringResource(R.string.action_save))
         }
     }
 }

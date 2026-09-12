@@ -1,11 +1,21 @@
 package de.avanzu.woolstash.ui.inventory
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -20,6 +30,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.avanzu.woolstash.R
@@ -64,6 +76,9 @@ fun InventoryListScreen(
     }
     var searchQuery by remember {
         mutableStateOf("")
+    }
+    var isAddMenuExpanded by remember {
+        mutableStateOf(false)
     }
 
     val availableTags = remember(items) {
@@ -202,6 +217,24 @@ fun InventoryListScreen(
                                 drawerState.open()
                             }
                         },
+                    )
+                }
+            },
+            floatingActionButton = {
+                Box {
+                    FloatingActionButton(
+                        onClick = { isAddMenuExpanded = true },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.action_add),
+                        )
+                    }
+                    InventoryAddMenu(
+                        expanded = isAddMenuExpanded,
+                        onExpandedChange = { expanded -> isAddMenuExpanded = expanded },
                         onAddYarnClick = onAddYarnClick,
                         onAddFiberClick = onAddFiberClick,
                     )
@@ -215,10 +248,20 @@ fun InventoryListScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(it)
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 16.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    item {
+                        ProductTypeFilterRow(
+                            items = items,
+                            selectedProductType = activeProductTypeFilter,
+                            onProductTypeSelected = { productType ->
+                                selectProductTypeFilter(productType)
+                            },
+                        )
+                    }
+
                     item {
                         InventoryListCount(
                             totalItemCount = items.size,
@@ -227,6 +270,15 @@ fun InventoryListScreen(
                                 activeProductTypeFilter != null ||
                                 searchQuery.isNotBlank(),
                         )
+                    }
+
+                    if (visibleItems.isEmpty()) {
+                        item {
+                            InventoryEmptyState(
+                                isFiltered = items.isNotEmpty(),
+                                onAddClick = { isAddMenuExpanded = true },
+                            )
+                        }
                     }
 
                     items(
@@ -258,6 +310,88 @@ fun InventoryListScreen(
 }
 
 @Composable
+private fun ProductTypeFilterRow(
+    items: List<InventoryItem>,
+    selectedProductType: ProductType?,
+    onProductTypeSelected: (ProductType?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val yarnCount = items.count { item -> item.productType == ProductType.Yarn }
+    val fiberCount = items.count { item -> item.productType == ProductType.Fiber }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = selectedProductType == null,
+            onClick = { onProductTypeSelected(null) },
+            label = { Text(stringResource(R.string.inventory_type_filter_with_count, items.size)) },
+        )
+        FilterChip(
+            selected = selectedProductType == ProductType.Yarn,
+            onClick = { onProductTypeSelected(ProductType.Yarn) },
+            label = { Text(stringResource(R.string.inventory_yarn_filter_with_count, yarnCount)) },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = ProductType.Yarn.containerColor(),
+                selectedLabelColor = ProductType.Yarn.onContainerColor(),
+            ),
+        )
+        FilterChip(
+            selected = selectedProductType == ProductType.Fiber,
+            onClick = { onProductTypeSelected(ProductType.Fiber) },
+            label = { Text(stringResource(R.string.inventory_fiber_filter_with_count, fiberCount)) },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = ProductType.Fiber.containerColor(),
+                selectedLabelColor = ProductType.Fiber.onContainerColor(),
+            ),
+        )
+    }
+}
+
+@Composable
+private fun InventoryEmptyState(
+    isFiltered: Boolean,
+    onAddClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 48.dp),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        ProductTypeArtwork(
+            productType = ProductType.Yarn,
+            contentDescription = null,
+            size = 128.dp,
+        )
+        Text(
+            text = stringResource(
+                if (isFiltered) R.string.inventory_empty_filtered_title else R.string.inventory_empty_title,
+            ),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = stringResource(
+                if (isFiltered) R.string.inventory_empty_filtered_body else R.string.inventory_empty_body,
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        if (!isFiltered) {
+            androidx.compose.material3.TextButton(onClick = onAddClick) {
+                Text(stringResource(R.string.inventory_empty_action))
+            }
+        }
+    }
+}
+
+@Composable
 private fun InventoryListCount(
     totalItemCount: Int,
     visibleItemCount: Int,
@@ -279,6 +413,7 @@ private fun InventoryListCount(
             )
         },
         style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.Medium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }

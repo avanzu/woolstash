@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,43 +61,46 @@ internal fun InventoryCoreFieldsEditor(
     modifier: Modifier = Modifier,
     onCancel: (() -> Unit)? = null,
 ) {
-    var name by remember(initialName) { mutableStateOf(initialName) }
-    var colorDescription by remember(initialColorDescription) {
+    var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
+    var colorDescription by rememberSaveable(initialColorDescription) {
         mutableStateOf(initialColorDescription.orEmpty())
     }
-    var materialDescription by remember(initialMaterialDescription) {
+    var materialDescription by rememberSaveable(initialMaterialDescription) {
         mutableStateOf(initialMaterialDescription.orEmpty())
     }
-    var location by remember(initialLocation) {
+    var location by rememberSaveable(initialLocation) {
         mutableStateOf(initialLocation.orEmpty())
     }
-    var manufacturer by remember(initialManufacturer) {
+    var manufacturer by rememberSaveable(initialManufacturer) {
         mutableStateOf(initialManufacturer.orEmpty())
     }
-    var purchaseSource by remember(initialPurchaseSource) {
+    var purchaseSource by rememberSaveable(initialPurchaseSource) {
         mutableStateOf(initialPurchaseSource.orEmpty())
     }
-    var weightText by remember(initialWeightGrams) {
+    var weightText by rememberSaveable(initialWeightGrams) {
         mutableStateOf(initialWeightGrams?.let { grams -> WeightInputUnit.Grams.fromGrams(grams).toString() }.orEmpty())
     }
-    var weightUnit by remember(initialWeightGrams) {
+    var weightUnit by rememberSaveable(initialWeightGrams) {
         mutableStateOf(WeightInputUnit.Grams)
     }
-    var tags by remember(initialTags) {
-        mutableStateOf(initialTags.normalizedDistinct())
+    var tagNames by rememberSaveable(initialTags) {
+        mutableStateOf(initialTags.normalizedDistinct().map { tag -> tag.name })
     }
-    var tagText by remember {
+    var tagText by rememberSaveable {
         mutableStateOf("")
     }
+    val tags = tagNames.map(::Tag)
 
     fun addTag(input: String = tagText) {
         val tag = Tag.fromInput(input) ?: return
-        tags = (tags + tag).normalizedDistinct()
+        tagNames = (tags + tag).normalizedDistinct().map { normalizedTag -> normalizedTag.name }
         tagText = ""
     }
 
     fun removeTag(tag: Tag) {
-        tags = tags.filterNot { existingTag -> existingTag.name == tag.name }
+        tagNames = tags
+            .filterNot { existingTag -> existingTag.name == tag.name }
+            .map { remainingTag -> remainingTag.name }
     }
 
     val parsedWeight = weightText
@@ -265,41 +268,25 @@ internal fun InventoryCoreFieldsEditor(
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            if (onCancel != null) {
-                IconButton(
-                    onClick = onCancel,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.action_cancel),
-                    )
-                }
-            }
-
-            Button(
-                enabled = canSubmit,
-                onClick = {
-                    onSubmit(
-                        CreateInventoryItemInput(
-                            name = name,
-                            colorDescription = colorDescription,
-                            materialDescription = materialDescription,
-                            weightGrams = normalizedWeightGrams,
-                            location = location,
-                            manufacturer = manufacturer,
-                            purchaseSource = purchaseSource,
-                            tags = tags,
-                        ),
-                    )
-                },
-            ) {
-                Text(submitLabel)
-            }
-        }
+        InventoryEditorActions(
+            canSubmit = canSubmit,
+            submitLabel = submitLabel,
+            onCancel = onCancel,
+            onSubmit = {
+                onSubmit(
+                    CreateInventoryItemInput(
+                        name = name,
+                        colorDescription = colorDescription,
+                        materialDescription = materialDescription,
+                        weightGrams = normalizedWeightGrams,
+                        location = location,
+                        manufacturer = manufacturer,
+                        purchaseSource = purchaseSource,
+                        tags = tags,
+                    ),
+                )
+            },
+        )
     }
 }
 

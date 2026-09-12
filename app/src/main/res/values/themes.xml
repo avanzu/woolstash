@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.WoolStash" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:navigationBarColor">@color/woolstash_cream</item>
-        <item name="android:statusBarColor">@color/woolstash_cream</item>
+    <style name="Theme.WoolStash" parent="android:Theme.Material.NoActionBar">
+        <item name="android:navigationBarColor">@color/woolstash_aubergine</item>
+        <item name="android:statusBarColor">@color/woolstash_aubergine</item>
         <item name="android:windowBackground">@drawable/splash_screen</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

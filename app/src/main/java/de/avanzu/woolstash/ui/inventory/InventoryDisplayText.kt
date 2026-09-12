@@ -12,6 +12,7 @@ import de.avanzu.woolstash.domain.model.InventoryItemStatus
 import de.avanzu.woolstash.domain.model.LengthBasis
 import de.avanzu.woolstash.domain.model.MeasurementSource
 import de.avanzu.woolstash.domain.model.ProductDetails
+import de.avanzu.woolstash.domain.model.ProductType
 import de.avanzu.woolstash.domain.model.TwistDirection
 import de.avanzu.woolstash.domain.model.YarnDetails
 import de.avanzu.woolstash.domain.model.YarnWeight
@@ -42,10 +43,15 @@ internal fun ProductDetails.detailSummaryLine(): String {
 
 @Composable
 internal fun InventoryItem.productTypeLabel(): String {
+    return productType.productTypeLabel()
+}
+
+@Composable
+internal fun ProductType.productTypeLabel(): String {
     return stringResource(
-        id = when (details) {
-            is YarnDetails -> R.string.product_type_yarn
-            is FiberDetails -> R.string.product_type_fiber
+        id = when (this) {
+            ProductType.Yarn -> R.string.product_type_yarn
+            ProductType.Fiber -> R.string.product_type_fiber
         },
     )
 }

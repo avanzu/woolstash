@@ -1,49 +1,8 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="@color/woolstash_terracotta"
-        android:pathData="M54,24C41.3,24 31,33.8 31,46.5C31,59.2 41.3,69 54,69C66.7,69 77,59.2 77,46.5C77,33.8 66.7,24 54,24Z"
-        android:strokeColor="@color/woolstash_plum"
-        android:strokeWidth="3.8" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M36,31.5C49,33 65,42 74,54.5"
-        android:strokeColor="@color/woolstash_plum"
-        android:strokeLineCap="round"
-        android:strokeWidth="3.5" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M31.8,43C44,39.5 62,41.5 76.6,48.5"
-        android:strokeColor="@color/woolstash_plum"
-        android:strokeLineCap="round"
-        android:strokeWidth="3.5" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M33.5,57.8C46,49.2 58.5,39 70.8,32.2"
-        android:strokeColor="@color/woolstash_plum"
-        android:strokeLineCap="round"
-        android:strokeWidth="3.5" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M42,66.5C50,53 61.2,43.2 74,37.3"
-        android:strokeColor="@color/woolstash_cream"
-        android:strokeLineCap="round"
-        android:strokeWidth="3.6" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M36.5,65C31.5,71.5 32,82.5 40.5,85C49,87.5 49,77.5 54,77.5C59,77.5 59,87.5 67.5,85C73.2,83.3 74.2,77.8 78.5,75.8"
-        android:strokeColor="@color/woolstash_plum"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeWidth="6" />
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M36.5,65C31.5,71.5 32,82.5 40.5,85C49,87.5 49,77.5 54,77.5C59,77.5 59,87.5 67.5,85C73.2,83.3 74.2,77.8 78.5,75.8"
-        android:strokeColor="@color/woolstash_terracotta"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:strokeWidth="2.8" />
-</vector>
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="72dp"
+        android:height="72dp"
+        android:drawable="@drawable/product_yarn"
+        android:gravity="center" />
+</layer-list>

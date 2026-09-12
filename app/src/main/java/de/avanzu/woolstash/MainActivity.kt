@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,12 +113,13 @@ class MainActivity : ComponentActivity() {
                 var pendingRestoreUri by remember {
                     mutableStateOf<android.net.Uri?>(null)
                 }
-                var selectedItemId by remember {
-                    mutableStateOf<InventoryItemId?>(null)
+                var selectedItemIdValue by rememberSaveable {
+                    mutableStateOf<String?>(null)
                 }
-                var createItemType by remember {
+                var createItemType by rememberSaveable {
                     mutableStateOf<CreateInventoryItemType?>(null)
                 }
+                val selectedItemId = selectedItemIdValue?.let(::InventoryItemId)
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
                 val tagSuggestions = remember(items) {
                     items
@@ -192,7 +194,7 @@ class MainActivity : ComponentActivity() {
                                             closeActiveServices()
                                             activeSlot = WoolStashStorageSlot.Staging
                                             servicesGeneration += 1
-                                            selectedItemId = null
+                                            selectedItemIdValue = null
                                             createItemType = null
                                             photoPreviews = emptyMap()
                                             messageDialog = getString(R.string.backup_restore_success)
@@ -274,13 +276,13 @@ class MainActivity : ComponentActivity() {
                             onCreateYarn = { input ->
                                 viewModel.createYarn(input) { createdItemId ->
                                     createItemType = null
-                                    selectedItemId = createdItemId
+                                    selectedItemIdValue = createdItemId.value
                                 }
                             },
                             onCreateFiber = { input ->
                                 viewModel.createFiber(input) { createdItemId ->
                                     createItemType = null
-                                    selectedItemId = createdItemId
+                                    selectedItemIdValue = createdItemId.value
                                 }
                             },
                             tagSuggestions = tagSuggestions,
@@ -307,7 +309,7 @@ class MainActivity : ComponentActivity() {
                             isImportingPhoto = isImportingPhoto,
                             photoImportError = photoImportError,
                             onBackClick = {
-                                selectedItemId = null
+                                selectedItemIdValue = null
                             },
                             onUpdateCoreFields = viewModel::updateCoreFields,
                             onUpdateProductDetails = viewModel::updateProductDetails,
@@ -369,7 +371,7 @@ class MainActivity : ComponentActivity() {
                                 photoPreviews = photoPreviews - ids
                             },
                             onItemClick = { item ->
-                                selectedItemId = item.id
+                                selectedItemIdValue = item.id.value
                             },
                             onAddYarnClick = {
                                 createItemType = CreateInventoryItemType.Yarn
@@ -398,7 +400,7 @@ class MainActivity : ComponentActivity() {
                                         activeSlot = WoolStashStorageSlot.Main
                                         storagePreferences.setActiveSlot(WoolStashStorageSlot.Main)
                                         servicesGeneration += 1
-                                        selectedItemId = null
+                                        selectedItemIdValue = null
                                         createItemType = null
                                         photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_accepted)
@@ -418,7 +420,7 @@ class MainActivity : ComponentActivity() {
                                         activeSlot = WoolStashStorageSlot.Main
                                         storagePreferences.setActiveSlot(WoolStashStorageSlot.Main)
                                         servicesGeneration += 1
-                                        selectedItemId = null
+                                        selectedItemIdValue = null
                                         createItemType = null
                                         photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_discarded)

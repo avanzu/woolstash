@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.avanzu.woolstash.R
+import de.avanzu.woolstash.domain.model.ProductType
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
 
 enum class CreateInventoryItemType {
@@ -73,6 +74,14 @@ fun CreateInventoryItemScreen(
                         .padding(top = 16.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
+                    CreateProductIntro(itemType = itemType)
+
+                    Text(
+                        text = stringResource(R.string.create_section_basics),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+
                     InventoryCoreFieldsEditor(
                         initialName = "",
                         initialColorDescription = null,
@@ -99,6 +108,54 @@ fun CreateInventoryItemScreen(
 }
 
 @Composable
+private fun CreateProductIntro(
+    itemType: CreateInventoryItemType,
+    modifier: Modifier = Modifier,
+) {
+    val productType = when (itemType) {
+        CreateInventoryItemType.Yarn -> ProductType.Yarn
+        CreateInventoryItemType.Fiber -> ProductType.Fiber
+    }
+    val description = when (itemType) {
+        CreateInventoryItemType.Yarn -> stringResource(R.string.create_yarn_description)
+        CreateInventoryItemType.Fiber -> stringResource(R.string.create_fiber_description)
+    }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = productType.containerColor(),
+        contentColor = productType.onContainerColor(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ProductTypeArtwork(
+                productType = productType,
+                contentDescription = null,
+                size = 88.dp,
+                showContainer = false,
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = productType.productTypeLabel(),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun CreateItemTopBar(
     title: String,
     onBackClick: () -> Unit,
@@ -108,8 +165,7 @@ private fun CreateItemTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Row(
             modifier = Modifier

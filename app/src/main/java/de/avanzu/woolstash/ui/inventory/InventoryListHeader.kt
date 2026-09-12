@@ -3,18 +3,14 @@ package de.avanzu.woolstash.ui.inventory
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -22,21 +18,20 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,42 +52,54 @@ internal fun InventoryListTopAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onMenuClick: () -> Unit,
-    onAddYarnClick: () -> Unit,
-    onAddFiberClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var isAddMenuExpanded by remember {
-        mutableStateOf(false)
-    }
-
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.background,
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            IconButton(
-                onClick = onMenuClick,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = stringResource(R.string.action_open_navigation),
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
+
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = stringResource(R.string.action_open_navigation),
+                    )
+                }
             }
 
             TextField(
                 value = searchQuery,
                 onValueChange = onSearchQueryChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                shape = MaterialTheme.shapes.large,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                    disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                ),
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -119,32 +126,6 @@ internal fun InventoryListTopAppBar(
                     Text(stringResource(R.string.inventory_search_placeholder))
                 },
             )
-
-            Box {
-                FilledIconButton(
-                    onClick = {
-                        isAddMenuExpanded = true
-                    },
-                    modifier = Modifier.size(48.dp),
-                    shape = CircleShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.action_add),
-                    )
-                }
-
-                InventoryAddMenu(
-                    expanded = isAddMenuExpanded,
-                    onExpandedChange = { expanded -> isAddMenuExpanded = expanded },
-                    onAddYarnClick = onAddYarnClick,
-                    onAddFiberClick = onAddFiberClick,
-                )
-            }
         }
     }
 }
@@ -370,6 +351,15 @@ private fun ProductTypeDrawerItem(
             Text(label)
         },
         selected = selected,
+        icon = productType?.let { type ->
+            {
+                ProductTypeArtwork(
+                    productType = type,
+                    contentDescription = null,
+                    size = 32.dp,
+                )
+            }
+        },
         onClick = {
             onClick(productType)
         },
@@ -377,7 +367,7 @@ private fun ProductTypeDrawerItem(
 }
 
 @Composable
-private fun InventoryAddMenu(
+internal fun InventoryAddMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onAddYarnClick: () -> Unit,
@@ -390,6 +380,7 @@ private fun InventoryAddMenu(
         },
     ) {
         InventoryAddChoice(
+            productType = ProductType.Yarn,
             text = stringResource(R.string.action_add_yarn),
             onClick = {
                 onExpandedChange(false)
@@ -397,6 +388,7 @@ private fun InventoryAddMenu(
             },
         )
         InventoryAddChoice(
+            productType = ProductType.Fiber,
             text = stringResource(R.string.action_add_fiber),
             onClick = {
                 onExpandedChange(false)
@@ -408,6 +400,7 @@ private fun InventoryAddMenu(
 
 @Composable
 private fun InventoryAddChoice(
+    productType: ProductType,
     text: String,
     onClick: () -> Unit,
 ) {
@@ -415,10 +408,11 @@ private fun InventoryAddChoice(
         text = {
             Text(text)
         },
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.Default.Add,
+        leadingIcon = {
+            ProductTypeArtwork(
+                productType = productType,
                 contentDescription = null,
+                size = 36.dp,
             )
         },
         onClick = onClick,
@@ -496,8 +490,6 @@ private fun InventoryListTopAppBarPreview() {
             searchQuery = "socken",
             onSearchQueryChange = {},
             onMenuClick = {},
-            onAddYarnClick = {},
-            onAddFiberClick = {},
         )
     }
 }

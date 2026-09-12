@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WoolStash</string>
+    <string name="app_name">Wool Stash</string>
     <string name="number_of_entries">%1$d Einträge</string>
     <!-- Product types -->
     <string name="product_type_yarn">Garn</string>
@@ -112,7 +112,15 @@
     <string name="inventory_tags_show_more">%1$d weitere</string>
     <string name="inventory_tags_show_less">Weniger</string>
     <string name="inventory_type_filter_all">Alle</string>
+    <string name="inventory_type_filter_with_count">Alle (%1$d)</string>
+    <string name="inventory_yarn_filter_with_count">Garn (%1$d)</string>
+    <string name="inventory_fiber_filter_with_count">Faser (%1$d)</string>
     <string name="inventory_search_placeholder">Suchen</string>
+    <string name="inventory_empty_title">Dein Stash wartet auf dich</string>
+    <string name="inventory_empty_body">Lege dein erstes Garn oder deine erste Spinnfaser an. Unvollständige Angaben sind völlig in Ordnung.</string>
+    <string name="inventory_empty_action">Ersten Eintrag anlegen</string>
+    <string name="inventory_empty_filtered_title">Nichts Passendes gefunden</string>
+    <string name="inventory_empty_filtered_body">Probiere einen anderen Suchbegriff oder ändere deine Filter.</string>
     <string name="inventory_tag_filter_all">Alle Tags</string>
     <string name="inventory_tag_filter_empty">Keine Tags vorhanden</string>
     <string name="drawer_section_product_type">Produkttyp</string>
@@ -129,6 +137,9 @@
     <string name="create_field_name">Name</string>
     <string name="create_field_weight_grams">Gewicht in g</string>
     <string name="create_field_tags">Tags</string>
+    <string name="create_section_basics">Basisdaten</string>
+    <string name="create_yarn_description">Gesponnenes Material, Knäuel oder Strang</string>
+    <string name="create_fiber_description">Ungesponnene Rohfaser oder vorbereitete Faser</string>
     <string name="create_weight_error">Bitte eine positive Zahl eingeben.</string>
     <string name="action_add_tag">Tag hinzufügen</string>
     <string name="action_remove_tag">Tag entfernen</string>

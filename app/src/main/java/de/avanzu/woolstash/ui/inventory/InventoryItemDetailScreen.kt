@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,7 +40,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -52,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +63,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -73,6 +73,7 @@ import de.avanzu.woolstash.domain.model.FiberDetails
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.Length
 import de.avanzu.woolstash.domain.model.ProductDetails
+import de.avanzu.woolstash.domain.model.ProductType
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.domain.model.Weight
 import de.avanzu.woolstash.domain.model.YarnDetails
@@ -94,7 +95,7 @@ fun InventoryItemDetailScreen(
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var editingSection by remember(item.id) {
+    var editingSection by rememberSaveable(item.id.value) {
         mutableStateOf<InventoryDetailSection?>(null)
     }
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -111,7 +112,6 @@ fun InventoryItemDetailScreen(
         Scaffold(
             topBar = {
                 DetailTopBar(
-                    item = item,
                     isImportingPhoto = isImportingPhoto,
                     onBackClick = onBackClick,
                     onAddPhotoClick = {
@@ -132,18 +132,23 @@ fun InventoryItemDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(it)
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(top = 16.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 item {
                     PhotoSection(
+                        productType = item.productType,
                         photos = photos,
                         isImporting = isImportingPhoto,
                         importError = photoImportError,
                         onSetHeroPhoto = onSetHeroPhoto,
                         onDeletePhoto = onDeletePhoto,
                     )
+                }
+
+                item {
+                    DetailIdentityHeader(item = item)
                 }
 
                 item {
@@ -218,8 +223,31 @@ fun InventoryItemDetailScreen(
 }
 
 @Composable
-private fun DetailTopBar(
+private fun DetailIdentityHeader(
     item: InventoryItem,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = item.name,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ProductTypePill(productType = item.productType)
+            StatusPill(status = item.status)
+        }
+    }
+}
+
+@Composable
+private fun DetailTopBar(
     isImportingPhoto: Boolean,
     onBackClick: () -> Unit,
     onAddPhotoClick: () -> Unit,
@@ -235,8 +263,7 @@ private fun DetailTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Row(
             modifier = Modifier
@@ -254,38 +281,13 @@ private fun DetailTopBar(
                 )
             }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = item.productTypeLabel(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Spacer(modifier = Modifier.weight(1f))
 
             Box {
-                FilledIconButton(
+                IconButton(
                     onClick = {
                         isMenuExpanded = true
                     },
-                    modifier = Modifier.size(48.dp),
-                    shape = CircleShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -372,6 +374,7 @@ private fun DetailActionMenu(
 
 @Composable
 private fun PhotoSection(
+    productType: ProductType,
     photos: List<InventoryPhotoFile>,
     isImporting: Boolean,
     importError: String?,
@@ -445,15 +448,27 @@ private fun PhotoSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(4f / 3f)
+                .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             if (selectedPhoto == null) {
-                Text(
-                    text = stringResource(R.string.detail_photo_empty),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    ProductTypeArtwork(
+                        productType = productType,
+                        contentDescription = null,
+                        size = 176.dp,
+                        showContainer = false,
+                    )
+                    Text(
+                        text = stringResource(R.string.detail_photo_empty),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             } else {
                 LocalPhotoImage(
                     file = selectedPhoto.displayFile,
@@ -939,11 +954,18 @@ private fun EditableDetailSection(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = content,
-        )
-        HorizontalDivider()
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 1.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = content,
+            )
+        }
     }
 }
 
@@ -962,11 +984,18 @@ private fun DetailSection(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = content,
-        )
-        HorizontalDivider()
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 1.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = content,
+            )
+        }
     }
 }
 
