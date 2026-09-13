@@ -68,6 +68,8 @@ Wenn auf dem Gerät bereits WoolStash mit erhaltenswerten Daten installiert ist:
 
 Ohne eine erhaltenswerte vorhandene Installation kann dieser Abschnitt übersprungen werden.
 
+Aktuelle Debug-Builds verwenden den separaten Paketnamen `de.avanzu.woolstash.debug` und erscheinen als **Wool Stash (Debug)**. Sie können deshalb parallel zum Production-Release installiert werden. Die obigen Schritte betreffen nur ältere Debug-Versionen, die noch `de.avanzu.woolstash` verwendet haben.
+
 ## Erstinstallation über GitHub
 
 ### 1. APK herunterladen
