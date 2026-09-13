@@ -53,6 +53,7 @@ import de.avanzu.woolstash.ui.inventory.InventoryItemDetailScreen
 import de.avanzu.woolstash.ui.inventory.InventoryListScreen
 import de.avanzu.woolstash.ui.inventory.InventoryListViewModel
 import de.avanzu.woolstash.ui.inventory.InventoryListViewModelFactory
+import de.avanzu.woolstash.ui.inventory.InventoryOriginTreeScreen
 import de.avanzu.woolstash.ui.theme.WoolStashTheme
 import kotlinx.coroutines.launch
 
@@ -100,6 +101,7 @@ class MainActivity : ComponentActivity() {
                     factory = InventoryListViewModelFactory(services.inventoryRepository),
                 )
                 val items by viewModel.items.collectAsStateWithLifecycle()
+                val origins by viewModel.origins.collectAsStateWithLifecycle()
                 val referenceSuggestions by viewModel.referenceSuggestions.collectAsStateWithLifecycle()
                 var isBackupBusy by remember {
                     mutableStateOf(false)
@@ -116,11 +118,17 @@ class MainActivity : ComponentActivity() {
                 var selectedItemIdValue by rememberSaveable {
                     mutableStateOf<String?>(null)
                 }
+                var originTreeRootItemIdValue by rememberSaveable {
+                    mutableStateOf<String?>(null)
+                }
                 var createItemType by rememberSaveable {
                     mutableStateOf<CreateInventoryItemType?>(null)
                 }
                 val selectedItemId = selectedItemIdValue?.let(::InventoryItemId)
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
+                val originTreeRootItem = items.firstOrNull { item ->
+                    item.id.value == originTreeRootItemIdValue
+                }
                 val tagSuggestions = remember(items) {
                     items
                         .flatMap { item -> item.tags }
@@ -195,6 +203,7 @@ class MainActivity : ComponentActivity() {
                                             activeSlot = WoolStashStorageSlot.Staging
                                             servicesGeneration += 1
                                             selectedItemIdValue = null
+                                            originTreeRootItemIdValue = null
                                             createItemType = null
                                             photoPreviews = emptyMap()
                                             messageDialog = getString(R.string.backup_restore_success)
@@ -285,8 +294,30 @@ class MainActivity : ComponentActivity() {
                                     selectedItemIdValue = createdItemId.value
                                 }
                             },
+                            onCreateYarnFromStock = { input, sourceUsages ->
+                                viewModel.createYarnFromStock(input, sourceUsages) { createdItemId ->
+                                    createItemType = null
+                                    selectedItemIdValue = createdItemId.value
+                                }
+                            },
+                            onCreateFiberFromStock = { input, sourceUsages ->
+                                viewModel.createFiberFromStock(input, sourceUsages) { createdItemId ->
+                                    createItemType = null
+                                    selectedItemIdValue = createdItemId.value
+                                }
+                            },
+                            inventoryItems = items,
                             tagSuggestions = tagSuggestions,
                             referenceSuggestions = referenceSuggestions,
+                        )
+                    } else if (originTreeRootItem != null) {
+                        InventoryOriginTreeScreen(
+                            rootItem = originTreeRootItem,
+                            allItems = items,
+                            origins = origins,
+                            onBackClick = {
+                                originTreeRootItemIdValue = null
+                            },
                         )
                     } else if (selectedItem != null) {
                         var photos by remember(selectedItem.id, activeSlot) {
@@ -315,6 +346,12 @@ class MainActivity : ComponentActivity() {
                             onUpdateProductDetails = viewModel::updateProductDetails,
                             tagSuggestions = tagSuggestions,
                             referenceSuggestions = referenceSuggestions,
+                            hasOriginTree = origins.any { origin ->
+                                origin.childItemId == selectedItem.id
+                            },
+                            onOpenOriginTree = {
+                                originTreeRootItemIdValue = selectedItem.id.value
+                            },
                             onPhotoSelected = { uri ->
                                 coroutineScope.launch {
                                     isImportingPhoto = true
@@ -379,6 +416,12 @@ class MainActivity : ComponentActivity() {
                             onAddFiberClick = {
                                 createItemType = CreateInventoryItemType.Fiber
                             },
+                            onAddYarnFromStockClick = {
+                                createItemType = CreateInventoryItemType.YarnFromStock
+                            },
+                            onAddFiberFromStockClick = {
+                                createItemType = CreateInventoryItemType.FiberFromStock
+                            },
                             onCreateBackupClick = {
                                 exportLauncher.launch(getString(R.string.backup_default_file_name))
                             },
@@ -401,6 +444,7 @@ class MainActivity : ComponentActivity() {
                                         storagePreferences.setActiveSlot(WoolStashStorageSlot.Main)
                                         servicesGeneration += 1
                                         selectedItemIdValue = null
+                                        originTreeRootItemIdValue = null
                                         createItemType = null
                                         photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_accepted)
@@ -421,6 +465,7 @@ class MainActivity : ComponentActivity() {
                                         storagePreferences.setActiveSlot(WoolStashStorageSlot.Main)
                                         servicesGeneration += 1
                                         selectedItemIdValue = null
+                                        originTreeRootItemIdValue = null
                                         createItemType = null
                                         photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_discarded)
@@ -459,6 +504,7 @@ class MainActivity : ComponentActivity() {
                 WoolStashDatabase.Migration1To2,
                 WoolStashDatabase.Migration2To3,
                 WoolStashDatabase.Migration3To4,
+                WoolStashDatabase.Migration4To5,
             )
             .build()
         val mediaFilesDir = when (slot) {

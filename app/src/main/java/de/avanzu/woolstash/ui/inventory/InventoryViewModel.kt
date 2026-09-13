@@ -8,6 +8,9 @@ import de.avanzu.woolstash.domain.model.FiberDetails
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.InventoryReferenceType
+import de.avanzu.woolstash.domain.model.InventoryOrigin
+import de.avanzu.woolstash.domain.model.InventorySourceUsage
+import de.avanzu.woolstash.domain.model.MeasurementSource
 import de.avanzu.woolstash.domain.model.ProductDetails
 import de.avanzu.woolstash.domain.model.SampleInventoryItems
 import de.avanzu.woolstash.domain.model.Tag
@@ -54,6 +57,14 @@ class InventoryListViewModel(
                 initialValue = InventoryReferenceSuggestions(),
             )
 
+    val origins: StateFlow<List<InventoryOrigin>> =
+        inventoryRepository.observeOrigins()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList(),
+            )
+
     init {
         viewModelScope.launch {
             inventoryRepository.seedIfEmpty(SampleInventoryItems.items)
@@ -98,12 +109,52 @@ class InventoryListViewModel(
         )
     }
 
+    fun createYarnFromStock(
+        input: CreateInventoryItemInput,
+        sourceUsages: List<InventorySourceUsage>,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        createItemFromStock(
+            item = input.toInventoryItem(details = YarnDetails()),
+            sourceUsages = sourceUsages,
+            onCreated = onCreated,
+        )
+    }
+
+    fun createFiberFromStock(
+        input: CreateInventoryItemInput,
+        sourceUsages: List<InventorySourceUsage>,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        createItemFromStock(
+            item = input.toInventoryItem(details = FiberDetails()),
+            sourceUsages = sourceUsages,
+            onCreated = onCreated,
+        )
+    }
+
     private fun createItem(
         item: InventoryItem,
         onCreated: (InventoryItemId) -> Unit,
     ) {
         viewModelScope.launch {
             val createdItem = inventoryRepository.create(item)
+            onCreated(createdItem.id)
+        }
+    }
+
+    private fun createItemFromStock(
+        item: InventoryItem,
+        sourceUsages: List<InventorySourceUsage>,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val createdItem = inventoryRepository.createFromStock(
+                item = item.copy(
+                    weight = item.weight?.copy(source = MeasurementSource.Calculated),
+                ),
+                sourceUsages = sourceUsages,
+            )
             onCreated(createdItem.id)
         }
     }

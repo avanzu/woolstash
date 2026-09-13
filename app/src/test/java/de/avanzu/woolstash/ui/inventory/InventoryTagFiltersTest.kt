@@ -5,6 +5,7 @@ import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.ProductType
 import de.avanzu.woolstash.domain.model.Tag
 import de.avanzu.woolstash.domain.model.YarnDetails
+import de.avanzu.woolstash.domain.model.Weight
 import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -63,6 +64,28 @@ class InventoryTagFiltersTest {
                 .filterByProductType(ProductType.Fiber)
                 .filterByTag("natur"),
         )
+    }
+
+    @Test
+    fun filterByAvailableAmount_hidesOnlyZeroWeightsByDefault() {
+        val positive = InventoryItem(name = "Voll", weight = Weight(50.0), details = YarnDetails())
+        val depleted = InventoryItem(name = "Leer", weight = Weight(0.0), details = YarnDetails())
+        val unknown = InventoryItem(name = "Unbekannt", weight = null, details = FiberDetails())
+
+        assertEquals(
+            listOf(positive, unknown),
+            listOf(positive, depleted, unknown).filterByAvailableAmount(false),
+        )
+    }
+
+    @Test
+    fun filterByAvailableAmount_includesZeroWeightsWhenEnabled() {
+        val items = listOf(
+            InventoryItem(name = "Voll", weight = Weight(50.0), details = YarnDetails()),
+            InventoryItem(name = "Leer", weight = Weight(0.0), details = YarnDetails()),
+        )
+
+        assertEquals(items, items.filterByAvailableAmount(true))
     }
 
     @Test

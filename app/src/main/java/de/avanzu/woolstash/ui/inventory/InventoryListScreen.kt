@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -53,6 +54,8 @@ fun InventoryListScreen(
     onItemClick: (InventoryItem) -> Unit,
     onAddYarnClick: () -> Unit,
     onAddFiberClick: () -> Unit,
+    onAddYarnFromStockClick: () -> Unit,
+    onAddFiberFromStockClick: () -> Unit,
     onCreateBackupClick: () -> Unit,
     onRestoreBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,18 +83,24 @@ fun InventoryListScreen(
     var isAddMenuExpanded by remember {
         mutableStateOf(false)
     }
+    var includeDepletedItems by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-    val availableTags = remember(items) {
-        items.availableTagNames()
+    val listItems = remember(items, includeDepletedItems) {
+        items.filterByAvailableAmount(includeDepletedItems)
+    }
+    val availableTags = remember(listItems) {
+        listItems.availableTagNames()
     }
     val visibleItems = remember(
-        items,
+        listItems,
         activeTagFilter,
         activeProductTypeFilter,
         searchQuery,
         activeSort,
     ) {
-        items
+        listItems
             .filterByProductType(activeProductTypeFilter)
             .filterByTag(activeTagFilter)
             .filterBySearchQuery(searchQuery)
@@ -171,12 +180,17 @@ fun InventoryListScreen(
                 activeTagFilter = activeTagFilter,
                 activeProductTypeFilter = activeProductTypeFilter,
                 activeSort = activeSort,
+                includeDepletedItems = includeDepletedItems,
                 onTagFilterSelected = { tag -> selectTagFilter(tag) },
                 onTagFilterCleared = { clearTagFilter() },
                 onProductTypeFilterSelected = { productType ->
                     selectProductTypeFilter(productType)
                 },
                 onSortSelected = { sort -> selectSort(sort) },
+                onIncludeDepletedItemsChange = { include ->
+                    includeDepletedItems = include
+                    clearSelection()
+                },
                 isStagingActive = isStagingActive,
                 isBackupBusy = isBackupBusy,
                 onCreateBackupClick = {
@@ -237,6 +251,8 @@ fun InventoryListScreen(
                         onExpandedChange = { expanded -> isAddMenuExpanded = expanded },
                         onAddYarnClick = onAddYarnClick,
                         onAddFiberClick = onAddFiberClick,
+                        onAddYarnFromStockClick = onAddYarnFromStockClick,
+                        onAddFiberFromStockClick = onAddFiberFromStockClick,
                     )
                 }
             },
@@ -254,7 +270,7 @@ fun InventoryListScreen(
                 ) {
                     item {
                         ProductTypeFilterRow(
-                            items = items,
+                            items = listItems,
                             selectedProductType = activeProductTypeFilter,
                             onProductTypeSelected = { productType ->
                                 selectProductTypeFilter(productType)
@@ -264,7 +280,7 @@ fun InventoryListScreen(
 
                     item {
                         InventoryListCount(
-                            totalItemCount = items.size,
+                            totalItemCount = listItems.size,
                             visibleItemCount = visibleItems.size,
                             isFiltered = activeTagFilter != null ||
                                 activeProductTypeFilter != null ||
@@ -275,7 +291,7 @@ fun InventoryListScreen(
                     if (visibleItems.isEmpty()) {
                         item {
                             InventoryEmptyState(
-                                isFiltered = items.isNotEmpty(),
+                                isFiltered = listItems.isNotEmpty() || items.isNotEmpty(),
                                 onAddClick = { isAddMenuExpanded = true },
                             )
                         }
@@ -431,6 +447,8 @@ private fun InventoryListScreenPreview() {
             onItemClick = {},
             onAddYarnClick = {},
             onAddFiberClick = {},
+            onAddYarnFromStockClick = {},
+            onAddFiberFromStockClick = {},
             onCreateBackupClick = {},
             onRestoreBackupClick = {},
         )

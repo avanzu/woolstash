@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -90,6 +92,8 @@ fun InventoryItemDetailScreen(
     onUpdateProductDetails: (InventoryItem, ProductDetails, () -> Unit) -> Unit,
     tagSuggestions: List<String>,
     referenceSuggestions: InventoryReferenceSuggestions,
+    hasOriginTree: Boolean,
+    onOpenOriginTree: () -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
@@ -181,6 +185,24 @@ fun InventoryItemDetailScreen(
                             }
                         },
                     )
+                }
+
+                if (hasOriginTree) {
+                    item {
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = onOpenOriginTree,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountTree,
+                                contentDescription = null,
+                            )
+                            Text(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = stringResource(R.string.detail_origin_tree_open),
+                            )
+                        }
+                    }
                 }
 
                 if (item.tags.isNotEmpty() && editingSection != InventoryDetailSection.Overview) {
@@ -1042,6 +1064,8 @@ private fun InventoryItemDetailScreenPreview() {
             onUpdateProductDetails = { _, _, onUpdated -> onUpdated() },
             referenceSuggestions = InventoryReferenceSuggestions(),
             tagSuggestions = listOf("socken", "natur"),
+            hasOriginTree = true,
+            onOpenOriginTree = {},
             onPhotoSelected = {},
             onSetHeroPhoto = {},
             onDeletePhoto = {},

@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -136,12 +137,14 @@ internal fun InventoryFilterDrawerContent(
     activeTagFilter: String?,
     activeProductTypeFilter: ProductType?,
     activeSort: InventoryListSort,
+    includeDepletedItems: Boolean,
     isStagingActive: Boolean,
     isBackupBusy: Boolean,
     onTagFilterSelected: (String) -> Unit,
     onTagFilterCleared: () -> Unit,
     onProductTypeFilterSelected: (ProductType?) -> Unit,
     onSortSelected: (InventoryListSort) -> Unit,
+    onIncludeDepletedItemsChange: (Boolean) -> Unit,
     onCreateBackupClick: () -> Unit,
     onRestoreBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -173,18 +176,40 @@ internal fun InventoryFilterDrawerContent(
                 selected = activeProductTypeFilter == null,
                 onClick = onProductTypeFilterSelected,
             )
+
             ProductTypeDrawerItem(
                 productType = ProductType.Yarn,
                 label = stringResource(R.string.product_type_yarn),
                 selected = activeProductTypeFilter == ProductType.Yarn,
                 onClick = onProductTypeFilterSelected,
             )
+
             ProductTypeDrawerItem(
                 productType = ProductType.Fiber,
                 label = stringResource(R.string.product_type_fiber),
                 selected = activeProductTypeFilter == ProductType.Fiber,
                 onClick = onProductTypeFilterSelected,
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onIncludeDepletedItemsChange(!includeDepletedItems)
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = stringResource(R.string.inventory_show_depleted),
+                )
+                Switch(
+                    checked = includeDepletedItems,
+                    onCheckedChange = onIncludeDepletedItemsChange,
+                )
+            }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -372,6 +397,8 @@ internal fun InventoryAddMenu(
     onExpandedChange: (Boolean) -> Unit,
     onAddYarnClick: () -> Unit,
     onAddFiberClick: () -> Unit,
+    onAddYarnFromStockClick: () -> Unit,
+    onAddFiberFromStockClick: () -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -393,6 +420,23 @@ internal fun InventoryAddMenu(
             onClick = {
                 onExpandedChange(false)
                 onAddFiberClick()
+            },
+        )
+        HorizontalDivider()
+        InventoryAddChoice(
+            productType = ProductType.Yarn,
+            text = stringResource(R.string.action_add_yarn_from_stock),
+            onClick = {
+                onExpandedChange(false)
+                onAddYarnFromStockClick()
+            },
+        )
+        InventoryAddChoice(
+            productType = ProductType.Fiber,
+            text = stringResource(R.string.action_add_fiber_from_stock),
+            onClick = {
+                onExpandedChange(false)
+                onAddFiberFromStockClick()
             },
         )
     }
@@ -503,12 +547,14 @@ private fun InventoryFilterDrawerContentPreview() {
             activeTagFilter = "socken",
             activeProductTypeFilter = ProductType.Yarn,
             activeSort = InventoryListSort.TypeThenName,
+            includeDepletedItems = false,
             isStagingActive = false,
             isBackupBusy = false,
             onTagFilterSelected = {},
             onTagFilterCleared = {},
             onProductTypeFilterSelected = {},
             onSortSelected = {},
+            onIncludeDepletedItemsChange = {},
             onCreateBackupClick = {},
             onRestoreBackupClick = {},
         )

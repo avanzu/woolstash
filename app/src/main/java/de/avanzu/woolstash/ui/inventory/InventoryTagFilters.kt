@@ -38,6 +38,14 @@ internal fun List<InventoryItem>.filterByProductType(productType: ProductType?):
     return filter { item -> item.productType == productType }
 }
 
+internal fun List<InventoryItem>.filterByAvailableAmount(includeDepletedItems: Boolean): List<InventoryItem> {
+    if (includeDepletedItems) {
+        return this
+    }
+
+    return filter { item -> item.weight?.grams != 0.0 }
+}
+
 internal fun List<InventoryItem>.filterBySearchQuery(query: String?): List<InventoryItem> {
     val normalizedQuery = query
         ?.trim()

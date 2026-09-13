@@ -11,8 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         InventoryItemPhotoEntity::class,
         InventoryItemTagEntity::class,
         InventoryReferenceValueEntity::class,
+        InventoryOriginEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class WoolStashDatabase : RoomDatabase() {
@@ -20,10 +21,11 @@ abstract class WoolStashDatabase : RoomDatabase() {
     abstract fun inventoryItemPhotoDao(): InventoryItemPhotoDao
     abstract fun inventoryItemTagDao(): InventoryItemTagDao
     abstract fun inventoryReferenceValueDao(): InventoryReferenceValueDao
+    abstract fun inventoryOriginDao(): InventoryOriginDao
 
     companion object {
         const val DATABASE_NAME = "wool_stash.db"
-        const val DATABASE_VERSION = 4
+        const val DATABASE_VERSION = 5
 
         val Migration1To2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -80,6 +82,25 @@ abstract class WoolStashDatabase : RoomDatabase() {
                 )
                 db.execSQL("ALTER TABLE inventory_items ADD COLUMN manufacturer TEXT")
                 db.execSQL("ALTER TABLE inventory_items ADD COLUMN purchaseSource TEXT")
+            }
+        }
+
+        val Migration4To5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS inventory_origins (
+                        childItemId TEXT NOT NULL,
+                        parentItemId TEXT NOT NULL,
+                        consumedGrams REAL NOT NULL,
+                        PRIMARY KEY(childItemId, parentItemId),
+                        FOREIGN KEY(childItemId) REFERENCES inventory_items(id) ON DELETE CASCADE,
+                        FOREIGN KEY(parentItemId) REFERENCES inventory_items(id) ON DELETE CASCADE
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inventory_origins_childItemId ON inventory_origins(childItemId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_inventory_origins_parentItemId ON inventory_origins(parentItemId)")
             }
         }
     }

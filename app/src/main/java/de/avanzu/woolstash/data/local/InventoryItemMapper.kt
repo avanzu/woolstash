@@ -7,6 +7,7 @@ import de.avanzu.woolstash.domain.model.Gauge
 import de.avanzu.woolstash.domain.model.InventoryItem
 import de.avanzu.woolstash.domain.model.InventoryItemId
 import de.avanzu.woolstash.domain.model.InventoryItemStatus
+import de.avanzu.woolstash.domain.model.InventoryOrigin
 import de.avanzu.woolstash.domain.model.InventoryReferenceType
 import de.avanzu.woolstash.domain.model.InventoryReferenceValue
 import de.avanzu.woolstash.domain.model.Length
@@ -138,6 +139,14 @@ fun InventoryReferenceValueEntity.toDomain(): InventoryReferenceValue {
     return InventoryReferenceValue(
         type = InventoryReferenceType.valueOf(type),
         name = name,
+    )
+}
+
+fun InventoryOriginEntity.toDomain(): InventoryOrigin {
+    return InventoryOrigin(
+        childItemId = InventoryItemId(childItemId),
+        parentItemId = InventoryItemId(parentItemId),
+        consumedGrams = consumedGrams,
     )
 }
 
