@@ -1,0 +1,327 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "0b928301f8a6b027407d749423070d1e",
+    "entities": [
+      {
+        "tableName": "inventory_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `productType` TEXT NOT NULL, `name` TEXT NOT NULL, `colorDescription` TEXT, `materialDescription` TEXT, `weightGrams` REAL, `weightSource` TEXT, `location` TEXT, `manufacturer` TEXT, `purchaseSource` TEXT, `status` TEXT NOT NULL, `notes` TEXT, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `lengthMeters` REAL, `lengthSource` TEXT, `lengthBasis` TEXT, `yarnWeight` TEXT, `skeinCount` INTEGER, `recommendedNeedleSizeMillimeters` REAL, `gaugeStitchesPer10cm` REAL, `gaugeRowsPer10cm` REAL, `gaugeNeedleSizeMillimeters` REAL, `gaugeNote` TEXT, `dyeLot` TEXT, `ply` INTEGER, `twistDirection` TEXT, `fiberForm` TEXT, `fiberPreparation` TEXT, `breedOrSource` TEXT, `stapleLengthMeters` REAL, `stapleLengthSource` TEXT, `micron` REAL, `intendedSpin` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "productType",
+            "columnName": "productType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorDescription",
+            "columnName": "colorDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "materialDescription",
+            "columnName": "materialDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "weightGrams",
+            "columnName": "weightGrams",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "weightSource",
+            "columnName": "weightSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "manufacturer",
+            "columnName": "manufacturer",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "purchaseSource",
+            "columnName": "purchaseSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lengthMeters",
+            "columnName": "lengthMeters",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "lengthSource",
+            "columnName": "lengthSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lengthBasis",
+            "columnName": "lengthBasis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "yarnWeight",
+            "columnName": "yarnWeight",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "skeinCount",
+            "columnName": "skeinCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recommendedNeedleSizeMillimeters",
+            "columnName": "recommendedNeedleSizeMillimeters",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gaugeStitchesPer10cm",
+            "columnName": "gaugeStitchesPer10cm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gaugeRowsPer10cm",
+            "columnName": "gaugeRowsPer10cm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gaugeNeedleSizeMillimeters",
+            "columnName": "gaugeNeedleSizeMillimeters",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gaugeNote",
+            "columnName": "gaugeNote",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dyeLot",
+            "columnName": "dyeLot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ply",
+            "columnName": "ply",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "twistDirection",
+            "columnName": "twistDirection",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fiberForm",
+            "columnName": "fiberForm",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fiberPreparation",
+            "columnName": "fiberPreparation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "breedOrSource",
+            "columnName": "breedOrSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "stapleLengthMeters",
+            "columnName": "stapleLengthMeters",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "stapleLengthSource",
+            "columnName": "stapleLengthSource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "micron",
+            "columnName": "micron",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "intendedSpin",
+            "columnName": "intendedSpin",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "inventory_item_photos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`itemId` TEXT NOT NULL, `photoId` TEXT NOT NULL, `assignedAt` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `isHero` INTEGER NOT NULL, PRIMARY KEY(`itemId`, `photoId`))",
+        "fields": [
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photoId",
+            "columnName": "photoId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assignedAt",
+            "columnName": "assignedAt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sortOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isHero",
+            "columnName": "isHero",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "itemId",
+            "photoId"
+          ]
+        }
+      },
+      {
+        "tableName": "inventory_item_tags",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`itemId` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`itemId`, `name`), FOREIGN KEY(`itemId`) REFERENCES `inventory_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "itemId",
+            "name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_inventory_item_tags_itemId",
+            "unique": false,
+            "columnNames": [
+              "itemId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_inventory_item_tags_itemId` ON `${TABLE_NAME}` (`itemId`)"
+          },
+          {
+            "name": "index_inventory_item_tags_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_inventory_item_tags_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "inventory_items",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "itemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "inventory_reference_values",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`type` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`type`, `name`))",
+        "fields": [
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "type",
+            "name"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0b928301f8a6b027407d749423070d1e')"
+    ]
+  }
+}

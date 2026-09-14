@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("de.avanzu.woolstash", appContext.packageName)
+        assertEquals("de.avanzu.woolstash.debug", appContext.packageName)
     }
 }
