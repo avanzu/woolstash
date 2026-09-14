@@ -104,7 +104,9 @@ class WoolStashBackupService(
                 moveStagingToMain()
                 rollbackDirectory.deleteRecursively()
             } catch (error: Throwable) {
-                restoreMainFromRollback(rollbackDirectory)
+                runCatching {
+                    restoreMainFromRollback(rollbackDirectory)
+                }.exceptionOrNull()?.let(error::addSuppressed)
                 throw error
             }
         }
@@ -224,16 +226,11 @@ class WoolStashBackupService(
     }
 
     private fun restoreMainFromRollback(rollbackDirectory: File) {
-        rollbackDirectory.listFiles().orEmpty().forEach { file ->
-            val target = if (file.name == "media") {
-                mainMediaDirectory()
-            } else {
-                databasesDirectory.resolve(file.name)
-            }
-            if (!target.exists()) {
-                file.renameTo(target)
-            }
-        }
+        restoreMainFilesFromRollback(
+            rollbackDirectory = rollbackDirectory,
+            databasesDirectory = databasesDirectory,
+            mainMediaDirectory = mainMediaDirectory(),
+        )
     }
 
     private fun moveStagingToMain() {
@@ -349,6 +346,24 @@ private fun File.renameToOrThrow(target: File) {
     target.parentFile?.mkdirsOrThrow()
     if (!renameTo(target)) {
         throw IOException("Could not move $absolutePath to ${target.absolutePath}")
+    }
+}
+
+internal fun restoreMainFilesFromRollback(
+    rollbackDirectory: File,
+    databasesDirectory: File,
+    mainMediaDirectory: File,
+) {
+    rollbackDirectory.listFiles().orEmpty().forEach { file ->
+        val target = if (file.name == "media") {
+            mainMediaDirectory
+        } else {
+            databasesDirectory.resolve(file.name)
+        }
+        if (target.exists() && !target.deleteRecursively()) {
+            throw IOException("Could not remove partially promoted file: ${target.absolutePath}")
+        }
+        file.renameToOrThrow(target)
     }
 }
 

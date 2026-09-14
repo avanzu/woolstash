@@ -12,6 +12,7 @@
 *.keystore
 *.p12
 keystore.properties
+/documents/backups/
 /build
 /captures
 .externalNativeBuild

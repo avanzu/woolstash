@@ -449,6 +449,18 @@ class MainActivity : ComponentActivity() {
                                         photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_accepted)
                                     } catch (_: Exception) {
+                                        val recoverySlot = if (backupService.hasStaging()) {
+                                            WoolStashStorageSlot.Staging
+                                        } else {
+                                            WoolStashStorageSlot.Main
+                                        }
+                                        activeSlot = recoverySlot
+                                        storagePreferences.setActiveSlot(recoverySlot)
+                                        servicesGeneration += 1
+                                        selectedItemIdValue = null
+                                        originTreeRootItemIdValue = null
+                                        createItemType = null
+                                        photoPreviews = emptyMap()
                                         messageDialog = getString(R.string.backup_staging_action_error)
                                     } finally {
                                         isBackupBusy = false
