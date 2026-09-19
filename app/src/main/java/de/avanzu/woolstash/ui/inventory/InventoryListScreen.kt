@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -68,41 +67,36 @@ fun InventoryListScreen(
         mutableStateOf<Set<InventoryItemId>?>(null)
     }
 
-    var activeTagFilter by remember {
-        mutableStateOf<String?>(null)
-    }
-    var activeProductTypeFilter by remember {
-        mutableStateOf<ProductType?>(null)
+    var searchCriteria by remember {
+        mutableStateOf(InventorySearchCriteria())
     }
     var activeSort by remember {
-        mutableStateOf(InventoryListSort.UpdatedNewest)
+        mutableStateOf(InventoryListSort())
     }
     var searchQuery by remember {
         mutableStateOf("")
     }
+    var isSearchFilterSheetVisible by remember {
+        mutableStateOf(false)
+    }
     var isAddMenuExpanded by remember {
         mutableStateOf(false)
     }
-    var includeDepletedItems by rememberSaveable {
-        mutableStateOf(false)
-    }
 
-    val listItems = remember(items, includeDepletedItems) {
-        items.filterByAvailableAmount(includeDepletedItems)
+    val listItems = remember(items, searchCriteria.includeDepletedItems) {
+        items.filterByAvailableAmount(searchCriteria.includeDepletedItems)
     }
-    val availableTags = remember(listItems) {
-        listItems.availableTagNames()
+    val availableTags = remember(items) {
+        items.availableTagNames()
     }
     val visibleItems = remember(
-        listItems,
-        activeTagFilter,
-        activeProductTypeFilter,
+        items,
+        searchCriteria,
         searchQuery,
         activeSort,
     ) {
-        listItems
-            .filterByProductType(activeProductTypeFilter)
-            .filterByTag(activeTagFilter)
+        items
+            .filterBySearchCriteria(searchCriteria)
             .filterBySearchQuery(searchQuery)
             .sortForInventoryList(activeSort)
     }
@@ -127,35 +121,18 @@ fun InventoryListScreen(
     }
 
     fun selectTagFilter(tag: String) {
-        activeTagFilter = tag
+        searchCriteria = searchCriteria.copy(tags = setOf(tag))
         clearSelection()
-        coroutineScope.launch {
-            drawerState.close()
-        }
-    }
-
-    fun clearTagFilter() {
-        activeTagFilter = null
-        clearSelection()
-        coroutineScope.launch {
-            drawerState.close()
-        }
     }
 
     fun selectProductTypeFilter(productType: ProductType?) {
-        activeProductTypeFilter = productType
+        searchCriteria = searchCriteria.withProductType(productType)
         clearSelection()
-        coroutineScope.launch {
-            drawerState.close()
-        }
     }
 
-    fun selectSort(sort: InventoryListSort) {
-        activeSort = sort
+    fun selectSort(field: InventoryListSortField) {
+        activeSort = activeSort.select(field)
         clearSelection()
-        coroutineScope.launch {
-            drawerState.close()
-        }
     }
 
     pendingDeleteIds?.let { ids ->
@@ -172,25 +149,31 @@ fun InventoryListScreen(
         )
     }
 
+    if (isSearchFilterSheetVisible) {
+        InventorySearchFilterSheet(
+            criteria = searchCriteria,
+            availableTags = availableTags,
+            resultCount = { criteria ->
+                items
+                    .filterBySearchCriteria(criteria)
+                    .filterBySearchQuery(searchQuery)
+                    .size
+            },
+            onApply = { criteria ->
+                searchCriteria = criteria
+                isSearchFilterSheetVisible = false
+                clearSelection()
+            },
+            onDismiss = {
+                isSearchFilterSheetVisible = false
+            },
+        )
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            InventoryFilterDrawerContent(
-                availableTags = availableTags,
-                activeTagFilter = activeTagFilter,
-                activeProductTypeFilter = activeProductTypeFilter,
-                activeSort = activeSort,
-                includeDepletedItems = includeDepletedItems,
-                onTagFilterSelected = { tag -> selectTagFilter(tag) },
-                onTagFilterCleared = { clearTagFilter() },
-                onProductTypeFilterSelected = { productType ->
-                    selectProductTypeFilter(productType)
-                },
-                onSortSelected = { sort -> selectSort(sort) },
-                onIncludeDepletedItemsChange = { include ->
-                    includeDepletedItems = include
-                    clearSelection()
-                },
+            InventoryDrawerContent(
                 isStagingActive = isStagingActive,
                 isBackupBusy = isBackupBusy,
                 onCreateBackupClick = {
@@ -222,10 +205,16 @@ fun InventoryListScreen(
                 } else {
                     InventoryListTopAppBar(
                         searchQuery = searchQuery,
+                        activeFilterCount = searchCriteria.activeFilterCount,
+                        activeSort = activeSort,
                         onSearchQueryChange = { query ->
                             searchQuery = query
                             clearSelection()
                         },
+                        onSearchFiltersClick = {
+                            isSearchFilterSheetVisible = true
+                        },
+                        onSortSelected = { field -> selectSort(field) },
                         onMenuClick = {
                             coroutineScope.launch {
                                 drawerState.open()
@@ -271,7 +260,7 @@ fun InventoryListScreen(
                     item {
                         ProductTypeFilterRow(
                             items = listItems,
-                            selectedProductType = activeProductTypeFilter,
+                            selectedProductType = searchCriteria.productType,
                             onProductTypeSelected = { productType ->
                                 selectProductTypeFilter(productType)
                             },
@@ -282,8 +271,7 @@ fun InventoryListScreen(
                         InventoryListCount(
                             totalItemCount = listItems.size,
                             visibleItemCount = visibleItems.size,
-                            isFiltered = activeTagFilter != null ||
-                                activeProductTypeFilter != null ||
+                            isFiltered = searchCriteria.activeFilterCount > 0 ||
                                 searchQuery.isNotBlank(),
                         )
                     }

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.ZoomIn
@@ -41,6 +42,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -94,6 +96,7 @@ fun InventoryItemDetailScreen(
     referenceSuggestions: InventoryReferenceSuggestions,
     hasOriginTree: Boolean,
     onOpenOriginTree: () -> Unit,
+    onCreateDyedFiberClick: () -> Unit,
     onPhotoSelected: (Uri) -> Unit,
     onSetHeroPhoto: (InventoryPhotoFile) -> Unit,
     onDeletePhoto: (InventoryPhotoFile) -> Unit,
@@ -116,6 +119,7 @@ fun InventoryItemDetailScreen(
         Scaffold(
             topBar = {
                 DetailTopBar(
+                    productType = item.productType,
                     isImportingPhoto = isImportingPhoto,
                     onBackClick = onBackClick,
                     onAddPhotoClick = {
@@ -129,6 +133,7 @@ fun InventoryItemDetailScreen(
                     onEditDetailsClick = {
                         editingSection = InventoryDetailSection.ProductDetails
                     },
+                    onCreateDyedFiberClick = onCreateDyedFiberClick,
                 )
             },
         ) {
@@ -270,11 +275,13 @@ private fun DetailIdentityHeader(
 
 @Composable
 private fun DetailTopBar(
+    productType: ProductType,
     isImportingPhoto: Boolean,
     onBackClick: () -> Unit,
     onAddPhotoClick: () -> Unit,
     onEditOverviewClick: () -> Unit,
     onEditDetailsClick: () -> Unit,
+    onCreateDyedFiberClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isMenuExpanded by remember {
@@ -320,10 +327,12 @@ private fun DetailTopBar(
                 DetailActionMenu(
                     expanded = isMenuExpanded,
                     onExpandedChange = { expanded -> isMenuExpanded = expanded },
+                    productType = productType,
                     isImportingPhoto = isImportingPhoto,
                     onAddPhotoClick = onAddPhotoClick,
                     onEditOverviewClick = onEditOverviewClick,
                     onEditDetailsClick = onEditDetailsClick,
+                    onCreateDyedFiberClick = onCreateDyedFiberClick,
                 )
             }
         }
@@ -334,10 +343,12 @@ private fun DetailTopBar(
 private fun DetailActionMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
+    productType: ProductType,
     isImportingPhoto: Boolean,
     onAddPhotoClick: () -> Unit,
     onEditOverviewClick: () -> Unit,
     onEditDetailsClick: () -> Unit,
+    onCreateDyedFiberClick: () -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -345,6 +356,24 @@ private fun DetailActionMenu(
             onExpandedChange(false)
         },
     ) {
+        if (productType == ProductType.Fiber) {
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(R.string.action_create_dyed_fiber))
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    onExpandedChange(false)
+                    onCreateDyedFiberClick()
+                },
+            )
+            HorizontalDivider()
+        }
         DropdownMenuItem(
             enabled = !isImportingPhoto,
             text = {
@@ -1066,6 +1095,7 @@ private fun InventoryItemDetailScreenPreview() {
             tagSuggestions = listOf("socken", "natur"),
             hasOriginTree = true,
             onOpenOriginTree = {},
+            onCreateDyedFiberClick = {},
             onPhotoSelected = {},
             onSetHeroPhoto = {},
             onDeletePhoto = {},

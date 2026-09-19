@@ -45,6 +45,7 @@ enum class CreateInventoryItemType(
     Fiber(ProductType.Fiber, false),
     YarnFromStock(ProductType.Yarn, true),
     FiberFromStock(ProductType.Fiber, true),
+    DyedFiber(ProductType.Fiber, false),
 }
 
 @Composable
@@ -55,18 +56,25 @@ fun CreateInventoryItemScreen(
     onCreateFiber: (CreateInventoryItemInput) -> Unit,
     onCreateYarnFromStock: (CreateInventoryItemInput, List<InventorySourceUsage>) -> Unit,
     onCreateFiberFromStock: (CreateInventoryItemInput, List<InventorySourceUsage>) -> Unit,
+    onCreateDyedFiber: (CreateInventoryItemInput, InventoryItem) -> Unit,
     inventoryItems: List<InventoryItem>,
+    transformationSource: InventoryItem? = null,
     modifier: Modifier = Modifier,
     tagSuggestions: List<String> = emptyList(),
     referenceSuggestions: InventoryReferenceSuggestions = InventoryReferenceSuggestions(),
 ) {
     val itemType = requireNotNull(type) { "CreateInventoryItemScreen requires a product type." }
+    if (itemType == CreateInventoryItemType.DyedFiber && transformationSource == null) {
+        return
+    }
     val title = when (itemType) {
         CreateInventoryItemType.Yarn -> stringResource(R.string.create_yarn_title)
         CreateInventoryItemType.Fiber -> stringResource(R.string.create_fiber_title)
         CreateInventoryItemType.YarnFromStock -> stringResource(R.string.create_yarn_from_stock_title)
         CreateInventoryItemType.FiberFromStock -> stringResource(R.string.create_fiber_from_stock_title)
+        CreateInventoryItemType.DyedFiber -> stringResource(R.string.create_dyed_fiber_title)
     }
+    val dyedFiberSource = transformationSource
     var sourceAmountTexts by rememberSaveable(itemType) {
         mutableStateOf<Map<String, String>>(emptyMap())
     }
@@ -97,6 +105,7 @@ fun CreateInventoryItemScreen(
             CreateInventoryItemType.Fiber -> onCreateFiber(input)
             CreateInventoryItemType.YarnFromStock -> onCreateYarnFromStock(input, sourceUsages)
             CreateInventoryItemType.FiberFromStock -> onCreateFiberFromStock(input, sourceUsages)
+            CreateInventoryItemType.DyedFiber -> onCreateDyedFiber(input, requireNotNull(dyedFiberSource))
         }
     }
 
@@ -134,7 +143,38 @@ fun CreateInventoryItemScreen(
                 ) {
                     CreateProductIntro(itemType = itemType)
 
-                    if (!itemType.fromStock) {
+                    if (itemType == CreateInventoryItemType.DyedFiber) {
+                        val source = requireNotNull(dyedFiberSource)
+                        Text(
+                            text = stringResource(
+                                R.string.create_dyed_fiber_source_help,
+                                source.name,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = stringResource(R.string.create_section_basics),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        InventoryCoreFieldsEditor(
+                            initialName = source.name,
+                            initialColorDescription = null,
+                            initialMaterialDescription = source.materialDescription,
+                            initialWeightGrams = source.weight?.grams,
+                            initialLocation = source.location,
+                            initialManufacturer = source.manufacturer,
+                            initialPurchaseSource = source.purchaseSource,
+                            initialTags = source.tags,
+                            tagSuggestions = tagSuggestions,
+                            referenceSuggestions = referenceSuggestions,
+                            submitLabel = stringResource(R.string.action_create),
+                            onSubmit = { input -> createItem(input) },
+                            showCommercialFields = false,
+                            requirePositiveWeight = true,
+                        )
+                    } else if (!itemType.fromStock) {
                         Text(
                             text = stringResource(R.string.create_section_basics),
                             style = MaterialTheme.typography.titleMedium,
@@ -224,6 +264,7 @@ private fun CreateProductIntro(
         CreateInventoryItemType.Fiber -> stringResource(R.string.create_fiber_description)
         CreateInventoryItemType.YarnFromStock -> stringResource(R.string.create_yarn_from_stock_description)
         CreateInventoryItemType.FiberFromStock -> stringResource(R.string.create_fiber_from_stock_description)
+        CreateInventoryItemType.DyedFiber -> stringResource(R.string.create_dyed_fiber_description)
     }
 
     Surface(
@@ -310,6 +351,7 @@ private fun CreateInventoryItemScreenPreview() {
             onCreateFiber = {},
             onCreateYarnFromStock = { _, _ -> },
             onCreateFiberFromStock = { _, _ -> },
+            onCreateDyedFiber = { _, _ -> },
             inventoryItems = emptyList(),
             tagSuggestions = listOf("socken", "natur"),
             referenceSuggestions = InventoryReferenceSuggestions(

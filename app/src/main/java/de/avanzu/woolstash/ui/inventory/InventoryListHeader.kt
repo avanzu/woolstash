@@ -1,8 +1,8 @@
 package de.avanzu.woolstash.ui.inventory
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,15 +11,17 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -29,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -51,10 +52,18 @@ import de.avanzu.woolstash.ui.theme.WoolStashTheme
 @Composable
 internal fun InventoryListTopAppBar(
     searchQuery: String,
+    activeFilterCount: Int,
+    activeSort: InventoryListSort,
     onSearchQueryChange: (String) -> Unit,
+    onSearchFiltersClick: () -> Unit,
+    onSortSelected: (InventoryListSortField) -> Unit,
     onMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var isSortMenuExpanded by remember {
+        mutableStateOf(false)
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -81,7 +90,7 @@ internal fun InventoryListTopAppBar(
 
                 IconButton(onClick = onMenuClick) {
                     Icon(
-                        imageVector = Icons.Default.Tune,
+                        imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.action_open_navigation),
                     )
                 }
@@ -102,26 +111,59 @@ internal fun InventoryListTopAppBar(
                     disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                 ),
                 leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                    )
-                },
-                trailingIcon = if (searchQuery.isNotBlank()) {
-                    {
-                        IconButton(
-                            onClick = {
-                                onSearchQueryChange("")
+                    IconButton(onClick = onSearchFiltersClick) {
+                        BadgedBox(
+                            badge = {
+                                if (activeFilterCount > 0) {
+                                    Badge {
+                                        Text(activeFilterCount.toString())
+                                    }
+                                }
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.action_clear_search),
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.action_open_search_filters),
                             )
                         }
                     }
-                } else {
-                    null
+                },
+                trailingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (searchQuery.isNotBlank()) {
+                            IconButton(
+                                onClick = {
+                                    onSearchQueryChange("")
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.action_clear_search),
+                                )
+                            }
+                        }
+                        Box {
+                            IconButton(
+                                onClick = { isSortMenuExpanded = true },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                                    contentDescription = stringResource(R.string.action_sort),
+                                )
+                            }
+                            InventorySortMenu(
+                                expanded = isSortMenuExpanded,
+                                activeSort = activeSort,
+                                onDismiss = { isSortMenuExpanded = false },
+                                onSortSelected = { field ->
+                                    isSortMenuExpanded = false
+                                    onSortSelected(field)
+                                },
+                            )
+                        }
+                    }
                 },
                 placeholder = {
                     Text(stringResource(R.string.inventory_search_placeholder))
@@ -132,27 +174,13 @@ internal fun InventoryListTopAppBar(
 }
 
 @Composable
-internal fun InventoryFilterDrawerContent(
-    availableTags: List<String>,
-    activeTagFilter: String?,
-    activeProductTypeFilter: ProductType?,
-    activeSort: InventoryListSort,
-    includeDepletedItems: Boolean,
+internal fun InventoryDrawerContent(
     isStagingActive: Boolean,
     isBackupBusy: Boolean,
-    onTagFilterSelected: (String) -> Unit,
-    onTagFilterCleared: () -> Unit,
-    onProductTypeFilterSelected: (ProductType?) -> Unit,
-    onSortSelected: (InventoryListSort) -> Unit,
-    onIncludeDepletedItemsChange: (Boolean) -> Unit,
     onCreateBackupClick: () -> Unit,
     onRestoreBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var isTagSectionExpanded by remember(activeTagFilter) {
-        mutableStateOf(activeTagFilter != null)
-    }
-
     ModalDrawerSheet(
         modifier = modifier.widthIn(max = 320.dp),
     ) {
@@ -164,119 +192,10 @@ internal fun InventoryFilterDrawerContent(
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                text = stringResource(R.string.action_filter),
+                text = stringResource(R.string.drawer_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
             )
-
-            DrawerSectionTitle(text = stringResource(R.string.drawer_section_product_type))
-            ProductTypeDrawerItem(
-                productType = null,
-                label = stringResource(R.string.inventory_type_filter_all),
-                selected = activeProductTypeFilter == null,
-                onClick = onProductTypeFilterSelected,
-            )
-
-            ProductTypeDrawerItem(
-                productType = ProductType.Yarn,
-                label = stringResource(R.string.product_type_yarn),
-                selected = activeProductTypeFilter == ProductType.Yarn,
-                onClick = onProductTypeFilterSelected,
-            )
-
-            ProductTypeDrawerItem(
-                productType = ProductType.Fiber,
-                label = stringResource(R.string.product_type_fiber),
-                selected = activeProductTypeFilter == ProductType.Fiber,
-                onClick = onProductTypeFilterSelected,
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onIncludeDepletedItemsChange(!includeDepletedItems)
-                    }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(R.string.inventory_show_depleted),
-                )
-                Switch(
-                    checked = includeDepletedItems,
-                    onCheckedChange = onIncludeDepletedItemsChange,
-                )
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            DrawerSectionTitle(text = stringResource(R.string.drawer_section_sorting))
-            InventoryListSort.entries.forEach { sort ->
-                NavigationDrawerItem(
-                    label = {
-                        Text(sort.label())
-                    },
-                    selected = sort == activeSort,
-                    icon = if (sort == activeSort) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                            )
-                        }
-                    } else {
-                        null
-                    },
-                    onClick = {
-                        onSortSelected(sort)
-                    },
-                )
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            DrawerExpandableSectionTitle(
-                text = stringResource(R.string.drawer_section_tags),
-                expanded = isTagSectionExpanded,
-                onClick = {
-                    isTagSectionExpanded = !isTagSectionExpanded
-                },
-            )
-
-            if (isTagSectionExpanded) {
-                NavigationDrawerItem(
-                    label = {
-                        Text(stringResource(R.string.inventory_tag_filter_all))
-                    },
-                    selected = activeTagFilter == null,
-                    onClick = onTagFilterCleared,
-                )
-                if (availableTags.isEmpty()) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        text = stringResource(R.string.inventory_tag_filter_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    availableTags.forEach { tag ->
-                        NavigationDrawerItem(
-                            label = {
-                                Text(tag)
-                            },
-                            selected = tag == activeTagFilter,
-                            onClick = {
-                                onTagFilterSelected(tag)
-                            },
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             DrawerSectionTitle(text = stringResource(R.string.drawer_section_backup))
             NavigationDrawerItem(
@@ -318,6 +237,45 @@ internal fun InventoryFilterDrawerContent(
 }
 
 @Composable
+private fun InventorySortMenu(
+    expanded: Boolean,
+    activeSort: InventoryListSort,
+    onDismiss: () -> Unit,
+    onSortSelected: (InventoryListSortField) -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+    ) {
+        InventoryListSortField.entries.forEach { field ->
+            val isSelected = field == activeSort.field
+            DropdownMenuItem(
+                text = { Text(field.label()) },
+                trailingIcon = if (isSelected) {
+                    {
+                        Icon(
+                            imageVector = when (activeSort.direction) {
+                                InventoryListSortDirection.Ascending -> Icons.Default.ArrowUpward
+                                InventoryListSortDirection.Descending -> Icons.Default.ArrowDownward
+                            },
+                            contentDescription = stringResource(
+                                when (activeSort.direction) {
+                                    InventoryListSortDirection.Ascending -> R.string.sort_direction_ascending
+                                    InventoryListSortDirection.Descending -> R.string.sort_direction_descending
+                                },
+                            ),
+                        )
+                    }
+                } else {
+                    null
+                },
+                onClick = { onSortSelected(field) },
+            )
+        }
+    }
+}
+
+@Composable
 private fun DrawerSectionTitle(
     text: String,
     modifier: Modifier = Modifier,
@@ -328,66 +286,6 @@ private fun DrawerSectionTitle(
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun DrawerExpandableSectionTitle(
-    text: String,
-    expanded: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Icon(
-            imageVector = if (expanded) {
-                Icons.Default.ExpandLess
-            } else {
-                Icons.Default.ExpandMore
-            },
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun ProductTypeDrawerItem(
-    productType: ProductType?,
-    label: String,
-    selected: Boolean,
-    onClick: (ProductType?) -> Unit,
-) {
-    NavigationDrawerItem(
-        label = {
-            Text(label)
-        },
-        selected = selected,
-        icon = productType?.let { type ->
-            {
-                ProductTypeArtwork(
-                    productType = type,
-                    contentDescription = null,
-                    size = 32.dp,
-                )
-            }
-        },
-        onClick = {
-            onClick(productType)
-        },
     )
 }
 
@@ -464,12 +362,16 @@ private fun InventoryAddChoice(
 }
 
 @Composable
-private fun InventoryListSort.label(): String {
+private fun InventoryListSortField.label(): String {
     return stringResource(
         id = when (this) {
-            InventoryListSort.UpdatedNewest -> R.string.sort_option_updated_newest
-            InventoryListSort.NameAsc -> R.string.sort_option_name_asc
-            InventoryListSort.TypeThenName -> R.string.sort_option_type_then_name
+            InventoryListSortField.Updated -> R.string.sort_option_updated
+            InventoryListSortField.Created -> R.string.sort_option_created
+            InventoryListSortField.Name -> R.string.sort_option_name
+            InventoryListSortField.Weight -> R.string.detail_field_weight
+            InventoryListSortField.Location -> R.string.detail_field_location
+            InventoryListSortField.Color -> R.string.detail_field_color
+            InventoryListSortField.Material -> R.string.detail_field_material
         },
     )
 }
@@ -532,7 +434,14 @@ private fun InventoryListTopAppBarPreview() {
     WoolStashTheme {
         InventoryListTopAppBar(
             searchQuery = "socken",
+            activeFilterCount = 2,
+            activeSort = InventoryListSort(
+                field = InventoryListSortField.Location,
+                direction = InventoryListSortDirection.Ascending,
+            ),
             onSearchQueryChange = {},
+            onSearchFiltersClick = {},
+            onSortSelected = {},
             onMenuClick = {},
         )
     }
@@ -540,21 +449,11 @@ private fun InventoryListTopAppBarPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun InventoryFilterDrawerContentPreview() {
+private fun InventoryDrawerContentPreview() {
     WoolStashTheme {
-        InventoryFilterDrawerContent(
-            availableTags = listOf("natur", "socken", "spinnen"),
-            activeTagFilter = "socken",
-            activeProductTypeFilter = ProductType.Yarn,
-            activeSort = InventoryListSort.TypeThenName,
-            includeDepletedItems = false,
+        InventoryDrawerContent(
             isStagingActive = false,
             isBackupBusy = false,
-            onTagFilterSelected = {},
-            onTagFilterCleared = {},
-            onProductTypeFilterSelected = {},
-            onSortSelected = {},
-            onIncludeDepletedItemsChange = {},
             onCreateBackupClick = {},
             onRestoreBackupClick = {},
         )

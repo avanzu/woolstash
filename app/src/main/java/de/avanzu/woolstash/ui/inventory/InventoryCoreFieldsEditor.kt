@@ -62,6 +62,7 @@ internal fun InventoryCoreFieldsEditor(
     onCancel: (() -> Unit)? = null,
     canSubmitAdditional: Boolean = true,
     showCommercialFields: Boolean = true,
+    requirePositiveWeight: Boolean = false,
 ) {
     var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
     var colorDescription by rememberSaveable(initialColorDescription) {
@@ -110,9 +111,13 @@ internal fun InventoryCoreFieldsEditor(
         .replace(',', '.')
         .takeIf { value -> value.isNotEmpty() }
         ?.toDoubleOrNull()
-    val isWeightValid = weightText.isBlank() || parsedWeight?.let { weight ->
-        weight.isFinite() && weight >= 0
-    } == true
+    val isWeightValid = if (requirePositiveWeight) {
+        parsedWeight?.let { weight -> weight.isFinite() && weight > 0 } == true
+    } else {
+        weightText.isBlank() || parsedWeight?.let { weight ->
+            weight.isFinite() && weight >= 0
+        } == true
+    }
     val normalizedWeightGrams = parsedWeight?.let { weight -> weightUnit.toGrams(weight) }
     val canSubmit = name.isNotBlank() && isWeightValid && canSubmitAdditional
 

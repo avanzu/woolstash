@@ -104,6 +104,36 @@ class InventoryRepository(
             "An item cannot be its own source."
         }
 
+        return createDerivedItem(
+            item = item,
+            sourceUsages = sourceUsages,
+            requireKnownSourceWeights = true,
+        )
+    }
+
+    suspend fun createFiberTransformation(
+        item: InventoryItem,
+        sourceUsage: InventorySourceUsage,
+    ): InventoryItem {
+        require(item.productType == ProductType.Fiber) {
+            "A fiber transformation must create a fiber item."
+        }
+        require(sourceUsage.itemId != item.id) {
+            "An item cannot be its own source."
+        }
+
+        return createDerivedItem(
+            item = item,
+            sourceUsages = listOf(sourceUsage),
+            requireKnownSourceWeights = false,
+        )
+    }
+
+    private suspend fun createDerivedItem(
+        item: InventoryItem,
+        sourceUsages: List<InventorySourceUsage>,
+        requireKnownSourceWeights: Boolean,
+    ): InventoryItem {
         val normalizedItem = item.normalizedForPersistence()
         val changedAt = Instant.now()
 
@@ -124,17 +154,20 @@ class InventoryRepository(
             inventoryItemTagDao.insertAll(normalizedItem.toTagEntities())
 
             sourceItems.forEach { (usage, entity) ->
-                val currentGrams = requireNotNull(entity.weightGrams) {
-                    "Source item ${entity.id} has no recorded weight."
+                val currentGrams = entity.weightGrams
+                if (currentGrams == null && requireKnownSourceWeights) {
+                    error("Source item ${entity.id} has no recorded weight.")
                 }
-                val remainingGrams = remainingWeightGrams(currentGrams, usage.consumedGrams)
-                inventoryItemDao.upsert(
-                    entity.copy(
-                        weightGrams = remainingGrams,
-                        weightSource = MeasurementSource.Calculated.name,
-                        updatedAt = changedAt.toString(),
-                    ),
-                )
+                if (currentGrams != null) {
+                    val remainingGrams = remainingWeightGrams(currentGrams, usage.consumedGrams)
+                    inventoryItemDao.upsert(
+                        entity.copy(
+                            weightGrams = remainingGrams,
+                            weightSource = MeasurementSource.Calculated.name,
+                            updatedAt = changedAt.toString(),
+                        ),
+                    )
+                }
             }
 
             inventoryOriginDao.insertAll(

@@ -133,6 +133,32 @@ class InventoryListViewModel(
         )
     }
 
+    fun createDyedFiber(
+        input: CreateInventoryItemInput,
+        source: InventoryItem,
+        onCreated: (InventoryItemId) -> Unit,
+    ) {
+        val transformedGrams = requireNotNull(input.weightGrams) {
+            "A transformed fiber requires a recorded weight."
+        }
+
+        viewModelScope.launch {
+            val createdItem = inventoryRepository.createFiberTransformation(
+                item = input.toDyedFiberInventoryItem(source).copy(
+                    weight = Weight(
+                        grams = transformedGrams,
+                        source = MeasurementSource.Calculated,
+                    ),
+                ),
+                sourceUsage = InventorySourceUsage(
+                    itemId = source.id,
+                    consumedGrams = transformedGrams,
+                ),
+            )
+            onCreated(createdItem.id)
+        }
+    }
+
     private fun createItem(
         item: InventoryItem,
         onCreated: (InventoryItemId) -> Unit,

@@ -124,10 +124,16 @@ class MainActivity : ComponentActivity() {
                 var createItemType by rememberSaveable {
                     mutableStateOf<CreateInventoryItemType?>(null)
                 }
+                var transformationSourceItemIdValue by rememberSaveable {
+                    mutableStateOf<String?>(null)
+                }
                 val selectedItemId = selectedItemIdValue?.let(::InventoryItemId)
                 val selectedItem = items.firstOrNull { item -> item.id == selectedItemId }
                 val originTreeRootItem = items.firstOrNull { item ->
                     item.id.value == originTreeRootItemIdValue
+                }
+                val transformationSource = items.firstOrNull { item ->
+                    item.id.value == transformationSourceItemIdValue
                 }
                 val tagSuggestions = remember(items) {
                     items
@@ -281,6 +287,7 @@ class MainActivity : ComponentActivity() {
                             type = createItemType,
                             onBackClick = {
                                 createItemType = null
+                                transformationSourceItemIdValue = null
                             },
                             onCreateYarn = { input ->
                                 viewModel.createYarn(input) { createdItemId ->
@@ -306,7 +313,15 @@ class MainActivity : ComponentActivity() {
                                     selectedItemIdValue = createdItemId.value
                                 }
                             },
+                            onCreateDyedFiber = { input, source ->
+                                viewModel.createDyedFiber(input, source) { createdItemId ->
+                                    createItemType = null
+                                    transformationSourceItemIdValue = null
+                                    selectedItemIdValue = createdItemId.value
+                                }
+                            },
                             inventoryItems = items,
+                            transformationSource = transformationSource,
                             tagSuggestions = tagSuggestions,
                             referenceSuggestions = referenceSuggestions,
                         )
@@ -351,6 +366,10 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenOriginTree = {
                                 originTreeRootItemIdValue = selectedItem.id.value
+                            },
+                            onCreateDyedFiberClick = {
+                                transformationSourceItemIdValue = selectedItem.id.value
+                                createItemType = CreateInventoryItemType.DyedFiber
                             },
                             onPhotoSelected = { uri ->
                                 coroutineScope.launch {

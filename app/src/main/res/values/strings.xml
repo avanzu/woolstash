@@ -91,14 +91,16 @@
     <string name="action_add_fiber">Faser anlegen</string>
     <string name="action_add_yarn_from_stock">Garn aus Bestand</string>
     <string name="action_add_fiber_from_stock">Faser aus Bestand</string>
+    <string name="action_create_dyed_fiber">Als gefärbte Faser neu erfassen</string>
     <string name="action_delete">Löschen</string>
     <string name="action_delete_all">Alle löschen</string>
     <string name="action_cancel">Abbrechen</string>
     <string name="action_filter">Filtern</string>
     <string name="action_sort">Sortieren</string>
     <string name="action_clear_filter">Filter löschen</string>
-    <string name="action_open_navigation">Navigation öffnen</string>
+    <string name="action_open_navigation">Menü öffnen</string>
     <string name="action_clear_search">Suche löschen</string>
+    <string name="action_open_search_filters">Suchfilter öffnen</string>
     <string name="action_more">Weitere Aktionen</string>
 
     <string name="delete_item_dialog_title">Eintrag löschen?</string>
@@ -129,17 +131,25 @@
     <string name="inventory_show_depleted">Aufgebrauchte anzeigen</string>
     <string name="drawer_section_product_type">Produkttyp</string>
     <string name="drawer_section_tags">Tags</string>
-    <string name="drawer_section_sorting">Sortierung</string>
     <string name="drawer_section_backup">Backup</string>
-    <string name="sort_option_updated_newest">Zuletzt geändert</string>
-    <string name="sort_option_name_asc">Name</string>
-    <string name="sort_option_type_then_name">Typ</string>
+    <string name="drawer_title">Menü</string>
+    <string name="search_filters_title">Suche verfeinern</string>
+    <string name="search_filters_yarn_section">Garnkriterien</string>
+    <string name="search_filters_fiber_section">Faserkriterien</string>
+    <string name="search_filters_reset">Zurücksetzen</string>
+    <string name="search_filters_show_results">%1$d Treffer anzeigen</string>
+    <string name="sort_option_updated">Zuletzt geändert</string>
+    <string name="sort_option_created">Angelegt am</string>
+    <string name="sort_option_name">Name</string>
+    <string name="sort_direction_ascending">Aufsteigend</string>
+    <string name="sort_direction_descending">Absteigend</string>
 
     <!-- Create item -->
     <string name="create_yarn_title">Garn anlegen</string>
     <string name="create_fiber_title">Faser anlegen</string>
     <string name="create_yarn_from_stock_title">Garn aus Bestand anlegen</string>
     <string name="create_fiber_from_stock_title">Faser aus Bestand anlegen</string>
+    <string name="create_dyed_fiber_title">Gefärbte Faser anlegen</string>
     <string name="create_field_name">Name</string>
     <string name="create_field_weight_grams">Gewicht in g</string>
     <string name="create_field_tags">Tags</string>
@@ -148,6 +158,8 @@
     <string name="create_fiber_description">Ungesponnene Rohfaser oder vorbereitete Faser</string>
     <string name="create_yarn_from_stock_description">Neues Garn aus mehreren vorhandenen Beständen</string>
     <string name="create_fiber_from_stock_description">Neue Faser aus mehreren vorhandenen Beständen</string>
+    <string name="create_dyed_fiber_description">Vorhandene Faser nach dem Färben neu erfassen</string>
+    <string name="create_dyed_fiber_source_help">Ausgangsfaser: „%1$s“. Ergänze die neue Farbe und passe bei Bedarf die transformierte Menge an. Bei bekanntem Gewicht wird diese Menge vom Ausgangsbestand abgezogen.</string>
     <string name="create_from_stock_section">Aus Bestand</string>
     <string name="create_from_stock_help">Wähle mindestens zwei Faserbestände und gib jeweils an, wie viele Gramm du verwendet hast. Ist die Angabe größer als der Bestand, wird der Rest auf 0 g gesetzt.</string>
     <string name="create_from_stock_not_enough_sources">Es sind noch keine zwei Faserbestände mit erfasstem Gewicht verfügbar.</string>
