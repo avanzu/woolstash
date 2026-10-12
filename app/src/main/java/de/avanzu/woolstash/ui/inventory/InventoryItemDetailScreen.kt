@@ -960,7 +960,7 @@ private fun FiberDetailsFields(details: FiberDetails) {
     )
     DetailField(
         label = stringResource(R.string.detail_field_staple_length),
-        value = details.stapleLength?.displayText(),
+        value = details.stapleLength?.displayAsMillimetersText(),
     )
     DetailField(
         label = stringResource(R.string.detail_field_micron),
@@ -986,6 +986,15 @@ private fun Length.displayText(): String {
     return stringResource(
         R.string.detail_measurement_with_source,
         formatMeters(meters),
+        source.label(),
+    )
+}
+
+@Composable
+private fun Length.displayAsMillimetersText(): String {
+    return stringResource(
+        R.string.detail_measurement_with_source,
+        formatMillimeters(meters * 1_000.0),
         source.label(),
     )
 }

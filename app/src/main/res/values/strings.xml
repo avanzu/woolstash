@@ -60,6 +60,7 @@
 
     <!-- Measurement format strings -->
     <string name="format_length_meters">%1$d m</string>
+    <string name="format_length_millimeters">%1$.1f mm</string>
     <string name="format_weight_grams">%1$d g</string>
     <string name="format_needle_size">Nadel %1$.1f mm</string>
     <string name="format_micron">%1$.1f micron</string>
@@ -132,6 +133,7 @@
     <string name="drawer_section_product_type">Produkttyp</string>
     <string name="drawer_section_tags">Tags</string>
     <string name="drawer_section_backup">Backup</string>
+    <string name="drawer_section_information">Information</string>
     <string name="drawer_title">Menü</string>
     <string name="search_filters_title">Suche verfeinern</string>
     <string name="search_filters_yarn_section">Garnkriterien</string>
@@ -251,4 +253,12 @@
     <string name="backup_staging_accepted">Backup wurde übernommen.</string>
     <string name="backup_staging_discarded">Teststand wurde verworfen.</string>
     <string name="backup_staging_action_error">Teststand konnte nicht geändert werden.</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Datenschutz</string>
+    <string name="privacy_local_processing">Wool Stash funktioniert ohne Konto und ohne Werbung. Bestandsdaten, Notizen und ausgewählte Fotos werden lokal auf diesem Gerät verarbeitet. Die App überträgt diese Daten nicht an den Entwickler, Werbenetzwerke oder andere Dritte.</string>
+    <string name="privacy_backups">Manuell erstellte Sicherungen speichert die App nur am von dir gewählten Ort. Wenn die Android-System-Sicherung auf deinem Gerät aktiviert ist, kann Android App-Daten in deinem Google-Konto sichern. Diese Funktion steuerst du in den Android-Einstellungen.</string>
+    <string name="privacy_deletion">Einträge und Fotos kannst du in der App löschen. Beim Deinstallieren werden die lokalen App-Daten gelöscht. Manuell exportierte Sicherungen und Android-System-Sicherungen müssen am jeweiligen Speicherort separat gelöscht werden.</string>
+    <string name="privacy_open_full_policy">Vollständige Erklärung öffnen</string>
+    <string name="privacy_policy_url" translatable="false">https://github.com/avanzu/woolstash/blob/main/documents/privacy-policy.md</string>
 </resources>

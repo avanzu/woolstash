@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -21,6 +24,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -80,6 +85,9 @@ fun InventoryListScreen(
         mutableStateOf(false)
     }
     var isAddMenuExpanded by remember {
+        mutableStateOf(false)
+    }
+    var isPrivacyDialogVisible by remember {
         mutableStateOf(false)
     }
 
@@ -170,6 +178,12 @@ fun InventoryListScreen(
         )
     }
 
+    if (isPrivacyDialogVisible) {
+        PrivacyInformationDialog(
+            onDismiss = { isPrivacyDialogVisible = false },
+        )
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -187,6 +201,12 @@ fun InventoryListScreen(
                         drawerState.close()
                     }
                     onRestoreBackupClick()
+                },
+                onPrivacyClick = {
+                    coroutineScope.launch {
+                        drawerState.close()
+                    }
+                    isPrivacyDialogVisible = true
                 },
             )
         },
@@ -311,6 +331,43 @@ fun InventoryListScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PrivacyInformationDialog(
+    onDismiss: () -> Unit,
+) {
+    val uriHandler = LocalUriHandler.current
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.privacy_title))
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(stringResource(R.string.privacy_local_processing))
+                Text(stringResource(R.string.privacy_backups))
+                Text(stringResource(R.string.privacy_deletion))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { uriHandler.openUri(privacyPolicyUrl) },
+            ) {
+                Text(stringResource(R.string.privacy_open_full_policy))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+    )
 }
 
 @Composable

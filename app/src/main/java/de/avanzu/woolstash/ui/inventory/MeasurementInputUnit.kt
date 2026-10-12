@@ -34,6 +34,7 @@ internal enum class LengthInputUnit(
     @StringRes val labelRes: Int,
 ) {
     Meters(R.string.unit_meters),
+    Millimeters(R.string.unit_millimeters),
     Centimeters(R.string.unit_centimeters),
     Yards(R.string.unit_yards),
     Inches(R.string.unit_inches),
@@ -42,6 +43,7 @@ internal enum class LengthInputUnit(
 internal fun LengthInputUnit.toMeters(value: Double): Double {
     return when (this) {
         LengthInputUnit.Meters -> value
+        LengthInputUnit.Millimeters -> value / 1_000.0
         LengthInputUnit.Centimeters -> value / 100.0
         LengthInputUnit.Yards -> value * 0.9144
         LengthInputUnit.Inches -> value * 0.0254
@@ -51,6 +53,7 @@ internal fun LengthInputUnit.toMeters(value: Double): Double {
 internal fun LengthInputUnit.fromMeters(meters: Double): Double {
     return when (this) {
         LengthInputUnit.Meters -> meters
+        LengthInputUnit.Millimeters -> meters * 1_000.0
         LengthInputUnit.Centimeters -> meters * 100.0
         LengthInputUnit.Yards -> meters / 0.9144
         LengthInputUnit.Inches -> meters / 0.0254

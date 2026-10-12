@@ -202,6 +202,11 @@ internal fun formatMeters(meters: Double): String {
 }
 
 @Composable
+internal fun formatMillimeters(millimeters: Double): String {
+    return stringResource(id = R.string.format_length_millimeters, millimeters)
+}
+
+@Composable
 internal fun formatGrams(grams: Double): String {
     return stringResource(id = R.string.format_weight_grams, grams.toInt())
 }

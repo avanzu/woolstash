@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -179,6 +180,7 @@ internal fun InventoryDrawerContent(
     isBackupBusy: Boolean,
     onCreateBackupClick: () -> Unit,
     onRestoreBackupClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ModalDrawerSheet(
@@ -231,6 +233,21 @@ internal fun InventoryDrawerContent(
                         onRestoreBackupClick()
                     }
                 },
+            )
+
+            DrawerSectionTitle(text = stringResource(R.string.drawer_section_information))
+            NavigationDrawerItem(
+                label = {
+                    Text(stringResource(R.string.privacy_title))
+                },
+                selected = false,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.PrivacyTip,
+                        contentDescription = null,
+                    )
+                },
+                onClick = onPrivacyClick,
             )
         }
     }
@@ -456,6 +473,7 @@ private fun InventoryDrawerContentPreview() {
             isBackupBusy = false,
             onCreateBackupClick = {},
             onRestoreBackupClick = {},
+            onPrivacyClick = {},
         )
     }
 }

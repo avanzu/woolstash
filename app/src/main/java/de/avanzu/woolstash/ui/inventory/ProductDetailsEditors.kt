@@ -228,12 +228,12 @@ internal fun FiberDetailsEditor(
     var stapleLengthText by rememberSaveable(details) {
         mutableStateOf(
             details.stapleLength?.meters
-                ?.let { meters -> LengthInputUnit.Centimeters.fromMeters(meters).toString() }
+                ?.let { meters -> LengthInputUnit.Millimeters.fromMeters(meters).formatForInput() }
                 .orEmpty(),
         )
     }
     var stapleLengthUnit by rememberSaveable(details) {
-        mutableStateOf(LengthInputUnit.Centimeters)
+        mutableStateOf(LengthInputUnit.Millimeters)
     }
     var micronText by rememberSaveable(details) { mutableStateOf(details.micron?.toString().orEmpty()) }
     var intendedSpin by rememberSaveable(details) { mutableStateOf(details.intendedSpin.orEmpty()) }

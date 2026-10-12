@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            width: 1024px;
+            height: 500px;
+            margin: 0;
+            overflow: hidden;
+            background: #2b1530;
+            color: #f6f1e7;
+            font-family: Roboto, Arial, sans-serif;
+        }
+        body {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 64px 72px;
+        }
+        body::before,
+        body::after {
+            position: absolute;
+            content: "";
+            border: 12px solid rgba(20, 184, 166, 0.45);
+            border-radius: 50%;
+        }
+        body::before {
+            width: 560px;
+            height: 560px;
+            right: -245px;
+            top: -180px;
+        }
+        body::after {
+            width: 370px;
+            height: 370px;
+            right: -110px;
+            bottom: -245px;
+            border-color: rgba(214, 107, 179, 0.42);
+        }
+        .copy {
+            position: relative;
+            z-index: 2;
+            width: 570px;
+        }
+        h1 {
+            margin: 0 0 20px;
+            font-size: 78px;
+            line-height: 0.98;
+            letter-spacing: -2px;
+            font-weight: 700;
+        }
+        p {
+            width: 510px;
+            margin: 0;
+            color: #ebcce1;
+            font-size: 29px;
+            line-height: 1.25;
+            font-weight: 400;
+        }
+        img {
+            position: absolute;
+            z-index: 1;
+            width: 430px;
+            height: 430px;
+            right: 24px;
+            bottom: -10px;
+            object-fit: contain;
+            filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.35));
+        }
+    </style>
+</head>
+<body>
+    <div class="copy">
+        <h1>Wool Stash</h1>
+        <p>Dein lokaler Begleiter für Garn, Spinnfasern und Ideen</p>
+    </div>
+    <img src="../../app/src/main/res/drawable-nodpi/product_yarn.png" alt="">
+</body>
+</html>
